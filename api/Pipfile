@@ -7,6 +7,8 @@ name = "pypi"
 fastapi = {extras = ["standard"], version = "==0.115.6"}
 uvicorn = {extras = ["standard"], version = "==0.34.0"}
 gunicorn = "==22.0.0"
+sqlmodel = ">=0.0.14,<0.1.0"
+psycopg2-binary = "*"
 
 [dev-packages]
 
