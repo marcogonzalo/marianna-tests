@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from sqlalchemy import Text
 
@@ -16,8 +16,8 @@ class Assessment(SQLModel, table=True):
     min_value: float
     max_value: float
     scoring_method: ScoringMethod
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     def set_default_values(self) -> None:
         if self.scoring_method == ScoringMethod.BOOLEAN:
@@ -36,7 +36,7 @@ class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
     order: int
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Foreign keys
     assessment_id: int = Field(foreign_key="assessment.id")
@@ -50,7 +50,7 @@ class Choice(SQLModel, table=True):
     text: str
     value: float  # For BOOLEAN: 0 or 1, for SCORED: any value between min_value and max_value
     order: int    # Display order in the UI
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Foreign keys
     question_id: int = Field(foreign_key="question.id")
