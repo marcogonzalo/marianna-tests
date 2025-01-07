@@ -1,22 +1,33 @@
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
+from sqlalchemy import Text
 
 class ScoringMethod(str, Enum):
     BOOLEAN = "boolean"  # Simple true/false, adds 1 or 0
     SCORED = "scored"    # Custom scores with possible penalties
-    RANKING = "ranking"  # Ordered options from best to worst
+    CUSTOM = "custom"    # User-defined min and max values
 
 class Assessment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str
-    description: str
+    title: str  
+    description: Optional[str] = Field(default=None, sa_type=Text)
     min_value: float
     max_value: float
     scoring_method: ScoringMethod
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    
+    def set_default_values(self) -> None:
+        if self.scoring_method == ScoringMethod.BOOLEAN:
+            self.min_value = 0
+            self.max_value = 1
+        elif self.scoring_method == ScoringMethod.SCORED:
+            self.min_value = -1
+            self.max_value = 1
+        elif self.scoring_method == ScoringMethod.CUSTOM:
+            raise ValueError("Custom scoring method requires explicit min_value and max_value")
     
     # Relationships
     questions: List["Question"] = Relationship(back_populates="assessment")
@@ -24,28 +35,25 @@ class Assessment(SQLModel, table=True):
 class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
-    weight: float = Field(default=1.0)
     order: int
-    scoring_method: Optional[ScoringMethod] = Field(default=ScoringMethod.BOOLEAN)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
     # Foreign keys
     assessment_id: int = Field(foreign_key="assessment.id")
     
     # Relationships
     assessment: Assessment = Relationship(back_populates="questions")
-    options: List["AnswerOption"] = Relationship(back_populates="question")
+    choices: List["Choice"] = Relationship(back_populates="question")
 
-class AnswerOption(SQLModel, table=True):
+class Choice(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
-    value: float  # For BOOLEAN: 0 or 1, for SCORED: any value, for RANKING: position (1,2,3,...)
+    value: float  # For BOOLEAN: 0 or 1, for SCORED: any value between min_value and max_value
     order: int    # Display order in the UI
-    is_correct: bool = Field(default=False)  # Particularly useful for BOOLEAN scoring
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     
     # Foreign keys
     question_id: int = Field(foreign_key="question.id")
     
     # Relationships
-    question: Question = Relationship(back_populates="options")
+    question: Question = Relationship(back_populates="choices")
