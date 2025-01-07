@@ -1,0 +1,36 @@
+# To run tests, use one of these commands:
+#
+# Run all tests (default):
+#   docker compose -f docker-compose.test.yml up --build
+#
+# Run with coverage:
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest --cov=assessments tests/
+#
+# Run specific test file:
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest tests/unit/models/test_assessment.py -v
+#
+# Run tests matching a pattern:
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest -v -k "test_create"
+#
+# Run tests with detailed output:
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest -vv
+#
+# Run tests and stop on first failure:
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest -x
+#
+# Run tests with JUnit report (useful for CI):
+#   docker compose -f docker-compose.test.yml run --rm api-test pytest --junitxml=test-results.xml
+
+services:
+  api-test:
+    build:
+      context: ./api
+      target: api-test
+    volumes:
+      - ./api:/app
+      - /app/.venv/
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: 'sqlite:///:memory:'
+    command: pytest -v 

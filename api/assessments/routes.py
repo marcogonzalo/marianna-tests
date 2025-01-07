@@ -75,8 +75,25 @@ async def create_question(
     if not db_assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
     
-    db_question = Question(**question.dict(exclude={"choices"}), assessment_id=assessment_id)
+    db_question = Question(
+        text=question.text,
+        order=question.order,
+        assessment_id=assessment_id
+    )
     session.add(db_question)
+    session.commit()
+    session.refresh(db_question)
+
+    # Create choices
+    for choice_data in question.choices:
+        db_choice = Choice(
+            text=choice_data.text,
+            value=choice_data.value,
+            order=choice_data.order,
+            question_id=db_question.id
+        )
+        session.add(db_choice)
+    
     session.commit()
     session.refresh(db_question)
     return db_question
