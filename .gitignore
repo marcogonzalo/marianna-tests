@@ -176,3 +176,4 @@ node_modules/
 # IDEs
 .codegpt
 .vscode
+.DS_store
