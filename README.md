@@ -6,12 +6,12 @@ A system for creating and managing assessments with different scoring methods.
 
 - Docker and Docker Compose
 - Python 3.x (for local development)
-- Node.js (for local client development)
+- Node.js 22.x (for local client development)
 
 ## Project Structure
 
 - `api/`: FastAPI backend service
-- `client/`: Frontend application
+- `client/`: React 19 frontend application with Vite
 
 ## Development Setup
 
@@ -21,9 +21,14 @@ git clone <repository-url>
 cd <project-directory>
 ```
 
-2. Copy the environment file and configure your variables:
+2. Copy the environment files and configure your variables:
 ```bash
+# API environment
 cd api
+cp .env.example .env
+
+# Client environment
+cd ../client
 cp .env.example .env
 ```
 
@@ -33,9 +38,9 @@ docker-compose up
 ```
 
 This will start:
+- The client application at http://localhost:5137
 - The API service at http://localhost:8000
-- The client application at http://localhost:3000
-- A PostgreSQL database
+- A PostgreSQL database at localhost:5432
 
 ### API Documentation
 
@@ -74,12 +79,17 @@ npm install
 npm run dev
 ```
 
+The client will be available at http://localhost:5137
+
 ## Environment Variables
 
-Key environment variables for the API:
-
+### API Environment Variables:
 - `DATABASE_URL`: PostgreSQL connection string
 - `ENVIRONMENT`: Development/production environment
 - `DEBUG`: Enable/disable debug mode
 
-Check `.env.example` for all available configuration options. 
+### Client Environment Variables:
+- `VITE_API_URL`: API endpoint URL (default: http://api:8000 in Docker)
+- `HOST`: Host to bind the development server (default: 0.0.0.0)
+
+Check `.env.example` files in both api/ and client/ directories for all available configuration options. 

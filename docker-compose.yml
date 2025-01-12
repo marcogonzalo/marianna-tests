@@ -18,14 +18,31 @@ services:
       - db
     # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
+  client:
+    build:
+      context: ./client
+      target: client-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/usr/local/app
+      - /usr/local/app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    command: npm run dev
+    depends_on:
+      - api
+
   db:
     image: postgres:15
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-assessments}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-assessments}
+    env_file:
+      - ./api/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
