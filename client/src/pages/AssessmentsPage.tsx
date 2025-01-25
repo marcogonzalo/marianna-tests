@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AssessmentList from '@/features/assessments/components/AssessmentList';
 import { Assessment } from '@/features/assessments/types';
 import { getAssessments } from '@/features/assessments/api';
-import Button from '@/components/ui/Button';
+import { FormButton } from '@/components/ui';
 import { Page } from '@/layouts/Page';
 
 export default function AssessmentsPage() {
@@ -60,12 +60,12 @@ export default function AssessmentsPage() {
                                 organization.
                             </p>
                         </div>
-                        <Button
+                        <FormButton
                             variant="primary"
                             onClick={() => navigate('/assessments/create')}
                         >
                             Create Assessment
-                        </Button>
+                        </FormButton>
                     </div>
 
                     <AssessmentList assessments={assessments} />
