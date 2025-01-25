@@ -5,6 +5,7 @@ import { ScoringMethod } from '@/features/assessments/types';
 import FormButton from '../components/ui/FormButton';
 import { Page } from '@/layouts/Page';
 import { FormInput, FormTextarea, FormSelect } from '../components/ui';
+import { createAssessment } from '@/features/assessments/api';
 
 interface AssessmentForm {
     title: string;
@@ -25,11 +26,14 @@ const initialForm: AssessmentForm = {
 export default function CreateAssessmentPage() {
     const navigate = useNavigate();
     const [form, setForm] = useState<AssessmentForm>(initialForm);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement API call
-        console.log('Form submitted:', form);
+        setIsSubmitting(true);
+        await createAssessment(form);
+        setIsSubmitting(false);
+        navigate('/assessments');
     };
 
     const handleScoringMethodChange = (method: ScoringMethod) => {
@@ -60,6 +64,7 @@ export default function CreateAssessmentPage() {
                 <FormButton
                     variant="secondary"
                     onClick={() => navigate('/assessments')}
+                    disabled={isSubmitting}
                 >
                     Back to Assessments
                 </FormButton>
@@ -162,6 +167,7 @@ export default function CreateAssessmentPage() {
                         type="button"
                         onClick={() => navigate('/assessments')}
                         className='className="text-sm/6 font-semibold text-gray-900'
+                        disabled={isSubmitting}
                     >
                         Cancel
                     </FormButton>
@@ -169,6 +175,7 @@ export default function CreateAssessmentPage() {
                         variant="primary"
                         type="submit"
                         className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        disabled={isSubmitting}
                     >
                         Create Assessment
                     </FormButton>
