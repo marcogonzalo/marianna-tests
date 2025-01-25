@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ScoringMethod } from '@/features/assessments/types';
-import Button from '@/components/ui/Button';
+import FormButton from '../components/ui/FormButton';
 import { Page } from '@/layouts/Page';
+import { FormInput, FormTextarea, FormSelect } from '../components/ui';
 
 interface AssessmentForm {
     title: string;
@@ -56,12 +57,12 @@ export default function CreateAssessmentPage() {
                         Add a new assessment to your collection.
                     </p>
                 </div>
-                <Button
+                <FormButton
                     variant="secondary"
                     onClick={() => navigate('/assessments')}
                 >
                     Back to Assessments
-                </Button>
+                </FormButton>
             </div>
 
             <form
@@ -69,82 +70,61 @@ export default function CreateAssessmentPage() {
                 className="card divide-y divide-gray-200"
             >
                 <div className="p-6 space-y-6">
-                    <div>
-                        <label
-                            htmlFor="title"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Title
-                        </label>
-                        <input
-                            id="title"
-                            type="text"
-                            value={form.title}
-                            onChange={(e) =>
-                                setForm((prev) => ({
-                                    ...prev,
-                                    title: e.target.value,
-                                }))
-                            }
-                            className="input mt-1"
-                            required
-                        />
-                    </div>
+                    <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                        <div className="sm:col-span-4">
+                            <div className="mt-2">
+                                <FormInput
+                                    label="Title"
+                                    id="title"
+                                    type="text"
+                                    value={form.title}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            title: e.target.value,
+                                        }))
+                                    }
+                                    required
+                                />
+                            </div>
+                        </div>
 
-                    <div>
-                        <label
-                            htmlFor="description"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Description
-                        </label>
-                        <textarea
-                            id="description"
-                            value={form.description}
-                            onChange={(e) =>
-                                setForm((prev) => ({
-                                    ...prev,
-                                    description: e.target.value,
-                                }))
-                            }
-                            className="input mt-1 min-h-[100px]"
-                            rows={4}
-                        />
-                    </div>
+                        <div className="sm:col-span-4">
+                            <FormTextarea
+                                label="Description"
+                                id="description"
+                                value={form.description}
+                                onChange={(e) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        description: e.target.value,
+                                    }))
+                                }
+                                rows={4}
+                            />
+                        </div>
 
-                    <div>
-                        <label
-                            htmlFor="scoring_method"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Scoring Method
-                        </label>
-                        <select
-                            id="scoring_method"
-                            value={form.scoring_method}
-                            onChange={(e) =>
-                                handleScoringMethodChange(
-                                    e.target.value as ScoringMethod,
-                                )
-                            }
-                            className="input mt-1"
-                        >
-                            <option value="boolean">Boolean (0-1)</option>
-                            <option value="scored">Scored (-1 to 1)</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                    </div>
+                        <div className="sm:col-span-4">
+                            <FormSelect
+                                label="Scoring Method"
+                                id="scoring_method"
+                                value={form.scoring_method}
+                                onChange={(e) =>
+                                    handleScoringMethodChange(
+                                        e.target.value as ScoringMethod,
+                                    )
+                                }
+                            >
+                                <option value="boolean">Boolean (0-1)</option>
+                                <option value="scored">Scored (-1 to 1)</option>
+                                <option value="custom">Custom Range</option>
+                            </FormSelect>
+                        </div>
 
-                    {form.scoring_method === 'custom' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    htmlFor="min_value"
-                                    className="block text-sm font-medium text-gray-700"
-                                >
-                                    Minimum Value
-                                </label>
-                                <input
+                        {form.scoring_method === 'custom' && (
+                            <div className="sm:col-span-4 grid grid-cols-2 gap-4">
+                                <FormInput
+                                    label="Minimum value"
                                     id="min_value"
                                     type="number"
                                     value={form.min_value}
@@ -157,15 +137,8 @@ export default function CreateAssessmentPage() {
                                     className="input mt-1"
                                     required
                                 />
-                            </div>
-                            <div>
-                                <label
-                                    htmlFor="max_value"
-                                    className="block text-sm font-medium text-gray-700"
-                                >
-                                    Maximum Value
-                                </label>
-                                <input
+                                <FormInput
+                                    label="Maximum value"
                                     id="max_value"
                                     type="number"
                                     value={form.max_value}
@@ -179,21 +152,26 @@ export default function CreateAssessmentPage() {
                                     required
                                 />
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
-                <div className="px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end gap-3">
-                    <Button
+                <div className="mt-6 flex items-center justify-end gap-x-6">
+                    <FormButton
                         variant="secondary"
                         type="button"
                         onClick={() => navigate('/assessments')}
+                        className='className="text-sm/6 font-semibold text-gray-900'
                     >
                         Cancel
-                    </Button>
-                    <Button variant="primary" type="submit">
+                    </FormButton>
+                    <FormButton
+                        variant="primary"
+                        type="submit"
+                        className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    >
                         Create Assessment
-                    </Button>
+                    </FormButton>
                 </div>
             </form>
         </Page>
