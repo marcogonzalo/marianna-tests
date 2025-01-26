@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { FormButton } from '@/components/ui';
 import AssessmentCard from './AssessmentCard';
-import { Assessment } from '@/features/assessments/types';
+import { Assessment } from '@/features/assessments/types/client';
 
 interface AssessmentListProps {
     assessments: Assessment[];

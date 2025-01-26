@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AssessmentList from '@/features/assessments/components/AssessmentList';
-import { Assessment } from '@/features/assessments/types';
+import { Assessment } from '@/features/assessments/types/client';
 import { getAssessments } from '@/features/assessments/api';
 import { FormButton } from '@/components/ui';
 import { Page } from '@/layouts/Page';

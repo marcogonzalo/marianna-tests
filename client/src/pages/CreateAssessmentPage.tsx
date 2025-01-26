@@ -1,26 +1,30 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ScoringMethod } from '@/features/assessments/types';
-import FormButton from '../components/ui/FormButton';
+import { ScoringMethod } from '@/features/assessments/types/shared';
 import { Page } from '@/layouts/Page';
-import { FormInput, FormTextarea, FormSelect } from '../components/ui';
+import {
+    FormButton,
+    FormInput,
+    FormTextarea,
+    FormSelect,
+} from '@/components/ui';
 import { createAssessment } from '@/features/assessments/api';
 
 interface AssessmentForm {
     title: string;
     description: string;
-    scoring_method: ScoringMethod;
-    min_value: number;
-    max_value: number;
+    scoringMethod: ScoringMethod;
+    minValue: number;
+    maxValue: number;
 }
 
 const initialForm: AssessmentForm = {
     title: '',
     description: '',
-    scoring_method: 'boolean',
-    min_value: 0,
-    max_value: 1,
+    scoringMethod: 'boolean',
+    minValue: 0,
+    maxValue: 1,
 };
 
 export default function CreateAssessmentPage() {
@@ -47,9 +51,9 @@ export default function CreateAssessmentPage() {
 
         setForm((prev) => ({
             ...prev,
-            scoring_method: method,
-            min_value: min,
-            max_value: max,
+            scoringMethod: method,
+            minValue: min,
+            maxValue: max,
         }));
     };
 
@@ -112,8 +116,8 @@ export default function CreateAssessmentPage() {
                         <div className="sm:col-span-4">
                             <FormSelect
                                 label="Scoring Method"
-                                id="scoring_method"
-                                value={form.scoring_method}
+                                id="scoringMethod"
+                                value={form.scoringMethod}
                                 onChange={(e) =>
                                     handleScoringMethodChange(
                                         e.target.value as ScoringMethod,
@@ -126,17 +130,17 @@ export default function CreateAssessmentPage() {
                             </FormSelect>
                         </div>
 
-                        {form.scoring_method === 'custom' && (
+                        {form.scoringMethod === 'custom' && (
                             <div className="sm:col-span-4 grid grid-cols-2 gap-4">
                                 <FormInput
                                     label="Minimum value"
-                                    id="min_value"
+                                    id="minValue"
                                     type="number"
-                                    value={form.min_value}
+                                    value={form.minValue}
                                     onChange={(e) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            min_value: Number(e.target.value),
+                                            minValue: Number(e.target.value),
                                         }))
                                     }
                                     className="input mt-1"
@@ -144,13 +148,13 @@ export default function CreateAssessmentPage() {
                                 />
                                 <FormInput
                                     label="Maximum value"
-                                    id="max_value"
+                                    id="maxValue"
                                     type="number"
-                                    value={form.max_value}
+                                    value={form.maxValue}
                                     onChange={(e) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            max_value: Number(e.target.value),
+                                            maxValue: Number(e.target.value),
                                         }))
                                     }
                                     className="input mt-1"
