@@ -12,11 +12,13 @@ export default function FormButton({
     children,
     ...props
 }: ButtonProps) {
-    const baseStyles = 'btn';
+    const baseStyles =
+        'inline-flex justify-center rounded-md border py-2 px-4 text-sm font-medium shadow-sm';
 
     const variantStyles = {
-        primary: 'btn-primary',
-        secondary: 'btn-secondary',
+        primary:
+            'btn-primary border-transparent bg-indigo-600 text-white hover:bg-indigo-700',
+        secondary: 'btn-secondary hover:text-white hover:bg-indigo-700',
     };
 
     const sizeStyles = {
