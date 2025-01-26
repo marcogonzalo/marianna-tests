@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Question from './Question';
 import QuestionForm from './QuestionForm';
-import { Question as QuestionType } from '../types';
+import { Question as QuestionType } from '@/features/assessments/types';
 import { FormButton } from '@/components/ui';
+import { getAssessment } from '@/features/assessments/api'; // Import the API handler
 
 interface QuestionFormListProps {
     assessmentId: number;
@@ -27,6 +28,8 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
             // Add your API call here to save the question
             console.log('Saving question:', question);
             // Optionally refresh the assessment data after saving
+            const updatedAssessment = await getAssessment(assessmentId);
+            setLocalQuestions(updatedAssessment.questions ?? []);
         } catch (error) {
             console.error('Error saving question:', error);
         }
@@ -34,10 +37,11 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
 
     const handleAddQuestion = () => {
         const newQuestion: QuestionType = {
-            id: Date.now(), // Temporary ID, replace with actual ID from backend
+            id: undefined, // Temporary ID, replace with actual ID from backend
             assessmentId,
             text: '',
             order: localQuestions.length + 1,
+            choices: [],
         };
         setLocalQuestions([...localQuestions, newQuestion]);
     };

@@ -18,7 +18,7 @@ export interface Question {
     order?: number;
     createdAt?: string;
     assessmentId: number;
-    choices?: Choice[];
+    choices: Choice[];
 }
 
 export interface Choice {
