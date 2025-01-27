@@ -53,10 +53,10 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
                     Add Question
                 </FormButton>
             )}
-            {sortedQuestions.map((question) =>
+            {sortedQuestions.map((question, index) =>
                 isEditing ? (
                     <QuestionForm
-                        key={question.id}
+                        key={index}
                         {...question}
                         onSave={handleSaveQuestion}
                     />

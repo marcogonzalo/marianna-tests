@@ -1,8 +1,8 @@
 import { FormButton, FormInput } from '@/components/ui';
 import { Question, Choice } from '../types/client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createQuestion, updateQuestion } from '../api'; // Import the API handlers
-import ChoiceFormList from './ChoiceFormList'; // Import ChoiceFormList
+import ChoiceFormList, { ChoiceFormListRef } from './ChoiceFormList'; // Import ChoiceFormList
 
 interface QuestionFormProps extends Question {
     onSave?: (question: Question) => void;
@@ -15,6 +15,7 @@ export default function QuestionForm({
     const [text, setText] = useState(question.text);
     const [order, setOrder] = useState(question.order || 0);
     const [choices, setChoices] = useState<Choice[]>(question.choices || []);
+    const choiceListRef = useRef<ChoiceFormListRef>(null);
 
     const isChanged =
         text !== question.text ||
@@ -27,17 +28,19 @@ export default function QuestionForm({
             alert('Question text is required');
             return;
         }
-        for (const choice of choices) {
-            if (!choice.text.trim()) {
-                alert('All choices must have text');
-                return;
-            }
-            if (choice.value === null || isNaN(choice.value)) {
-                alert('All choices must have a valid value');
-                return;
-            }
+
+        if (!choiceListRef.current?.validateChoices()) {
+            return;
         }
-        const updatedQuestion = { ...question, text, order, choices };
+
+        const currentChoices = choiceListRef.current?.getChoices() || [];
+        const updatedQuestion = {
+            ...question,
+            text,
+            order,
+            choices: currentChoices,
+        };
+
         try {
             if (question.id) {
                 await updateQuestion(updatedQuestion);
@@ -90,7 +93,11 @@ export default function QuestionForm({
                     Save
                 </FormButton>
             </div>
-            <ChoiceFormList choices={choices} onSaveChoice={handleSaveChoice} />
+            <ChoiceFormList
+                ref={choiceListRef}
+                choices={choices}
+                onSaveChoice={handleSaveChoice}
+            />
         </form>
     );
 }
