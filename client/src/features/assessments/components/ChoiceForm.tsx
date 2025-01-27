@@ -9,12 +9,12 @@ interface ChoiceFormProps extends Choice {
 const ChoiceForm: React.FC<ChoiceFormProps> = ({ onSave, ...choice }) => {
     const [text, setText] = useState(choice.text);
     const [order, setOrder] = useState(choice.order || 0);
-    const [value, setValue] = useState(choice.value || null);
+    const [value, setValue] = useState(choice.value?.toString() || '');
 
     const isChanged =
         text !== choice.text ||
         order !== choice.order ||
-        value !== choice.value;
+        Number(value) !== choice.value;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,11 +22,12 @@ const ChoiceForm: React.FC<ChoiceFormProps> = ({ onSave, ...choice }) => {
             alert('Choice text is required');
             return;
         }
-        if (value === null || isNaN(value)) {
+        const numValue = Number(value);
+        if (isNaN(numValue)) {
             alert('Choice value is required and must be a number');
             return;
         }
-        if (onSave) onSave({ ...choice, text, order, value });
+        if (onSave) onSave({ ...choice, text, order, value: numValue });
     };
 
     return (

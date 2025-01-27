@@ -14,19 +14,19 @@ export default function FormButton({
     ...props
 }: ButtonProps) {
     const baseStyles =
-        'inline-flex justify-center rounded-md border py-2 px-4 text-sm font-medium shadow-sm';
+        'inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium';
 
     const variantStyles = {
         primary: {
-            base: 'btn-primary border-transparent bg-indigo-600 text-white',
+            base: 'btn-primary bg-indigo-600 text-white shadow-sm',
             hover: 'hover:bg-indigo-700',
         },
         secondary: {
-            base: 'btn-secondary text-white bg-indigo-400',
+            base: 'btn-secondary text-white bg-indigo-400 shadow-sm',
             hover: 'hover:bg-indigo-700',
         },
         text: {
-            base: 'btn-text border-transparent shadow-none text-indigo-600',
+            base: 'btn-text text-indigo-600',
             hover: 'hover:text-indigo-700',
         },
     };
@@ -38,9 +38,11 @@ export default function FormButton({
     };
 
     const combinedClassName = `${baseStyles} ${variantStyles[variant].base} ${
-        !disabled && variantStyles[variant].hover
-    } ${sizeStyles[size]} ${
-        disabled ? 'opacity-50 cursor-not-allowed' : ''
+        sizeStyles[size]
+    } ${
+        disabled
+            ? 'opacity-50 cursor-not-allowed'
+            : variantStyles[variant].hover
     } ${className}`;
 
     return (
