@@ -14,10 +14,26 @@ class ChoiceCreate(BaseModel):
         # Additional validation could be added here based on scoring_method
         return v
 
-class ChoiceRead(ChoiceCreate):
+    @field_validator('text')
+    @classmethod
+    def validate_text(cls, v):
+        if not v or not isinstance(v, str):
+            raise ValueError("Text must be a non-empty string")
+        return v
+
+    @field_validator('order')
+    @classmethod
+    def validate_order(cls, v):
+        if not isinstance(v, int):
+            raise ValueError("Order must be an integer")
+        return v
+
+
+class ChoiceRead(BaseModel):  # Change parent to BaseModel
     id: int
-    created_at: datetime
-    question_id: int
+    text: str
+    value: float
+    order: int
 
 class ChoiceUpdate(ChoiceCreate):
     id: Optional[int] = None
@@ -34,11 +50,33 @@ class QuestionCreate(BaseModel):
             raise ValueError("At least one choice is required")
         return v
 
-class QuestionRead(QuestionCreate):
+    @field_validator('text')
+    @classmethod
+    def validate_text(cls, v):
+        if not v or not isinstance(v, str):
+            raise ValueError("Text must be a non-empty string")
+        return v
+
+    @field_validator('order')
+    @classmethod
+    def validate_order(cls, v):
+        if not isinstance(v, int):
+            raise ValueError("Order must be an integer")
+        return v
+
+class QuestionRead(BaseModel):
     id: int
+    text: str
+    order: int
     created_at: datetime
     assessment_id: int
-    choices: List[ChoiceRead]
+    choices: List[ChoiceRead] = []  # Set default empty list
+
+    @field_validator('choices')
+    @classmethod
+    def validate_choices(cls, v):
+        # Only validate non-empty for creation, not reading
+        return v
 
 class QuestionUpdate(QuestionCreate):
     choices: List[ChoiceUpdate]

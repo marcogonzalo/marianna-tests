@@ -85,15 +85,7 @@ async def create_question(
     session.commit()
     session.refresh(db_question)
 
-    # Create choices
-    for choice_data in question.choices:
-        db_choice = Choice(
-            text=choice_data.text,
-            value=choice_data.value,
-            order=choice_data.order,
-            question_id=db_question.id
-        )
-        session.add(db_choice)
+    db_question.alter_choice_list(question.choices, session)
 
     session.commit()
     session.refresh(db_question)
@@ -134,8 +126,6 @@ async def update_question(
         .where(Question.assessment_id == assessment_id)
         .where(Question.id == question_id)
     ).first()
-    if not question:
-        raise HTTPException(status_code=404, detail="Question not found")
 
     # Update question data
     question.update_attributes(question_update)
