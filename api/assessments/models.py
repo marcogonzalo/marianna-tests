@@ -77,7 +77,6 @@ class Question(SQLModel, table=True):
     choices: List["Choice"] = Relationship(back_populates="question")
 
     # Methods
-
     def update_attributes(self, question_data: dict) -> None:
         only_question_data = question_data.dict(exclude={"choices"})
         for key, value in only_question_data.items():
