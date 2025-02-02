@@ -1,7 +1,6 @@
 import { FormButton, FormInput } from '@/components/ui';
 import { Question, Choice } from '../types/client';
 import { useState, useRef } from 'react';
-import { createQuestion, updateQuestion } from '../api'; // Import the API handlers
 import ChoiceFormList, { ChoiceFormListRef } from './ChoiceFormList'; // Import ChoiceFormList
 
 interface QuestionFormProps extends Question {
@@ -21,8 +20,8 @@ export default function QuestionForm({
         order !== question.order ||
         JSON.stringify(choices) !== JSON.stringify(question.choices);
 
-    console.log(choices, question.choices);
     const handleSubmit = async (e: React.FormEvent) => {
+        console.log('handleSubmit:', e.target);
         e.preventDefault();
         if (!text.trim()) {
             alert('Question text is required');
@@ -42,11 +41,9 @@ export default function QuestionForm({
         };
 
         try {
-            if (question.id) {
-                await updateQuestion(updatedQuestion);
-            } else {
-                await createQuestion(updatedQuestion);
-            }
+            updatedQuestion.choices.forEach((choice: Choice) => {
+                if (choice.id && choice.id <= 0) choice.id = undefined;
+            });
             if (onSave) onSave(updatedQuestion);
         } catch (error) {
             console.error('Error saving question:', error);
