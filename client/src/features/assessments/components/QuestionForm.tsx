@@ -16,12 +16,12 @@ export default function QuestionForm({
     const [order, setOrder] = useState(question.order || 0);
     const [choices, setChoices] = useState<Choice[]>(question.choices || []);
     const choiceListRef = useRef<ChoiceFormListRef>(null);
-
     const isChanged =
         text !== question.text ||
         order !== question.order ||
         JSON.stringify(choices) !== JSON.stringify(question.choices);
 
+    console.log(choices, question.choices);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!text.trim()) {

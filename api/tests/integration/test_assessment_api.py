@@ -56,7 +56,7 @@ async def test_update_assessment(async_client: AsyncClient, sample_assessment: A
 async def test_delete_assessment(async_client: AsyncClient, sample_assessment: Assessment):
     response = await async_client.delete(f"/assessments/{sample_assessment.id}")
     assert response.status_code == 200
-    
+
     # Verify deletion
     response = await async_client.get(f"/assessments/{sample_assessment.id}")
     assert response.status_code == 404
@@ -76,20 +76,4 @@ async def test_create_question(async_client: AsyncClient, sample_assessment: Ass
     assert response.status_code == 200
     data = response.json()
     assert data["text"] == "Test Question"
-
-async def test_create_choice(
-    async_client: AsyncClient,
-    sample_assessment: Assessment,
-    sample_question: Question
-):
-    response = await async_client.post(
-        f"/assessments/{sample_assessment.id}/questions/{sample_question.id}/choices",
-        json={
-            "text": "New Choice",
-            "value": 1,
-            "order": 1
-        }
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["text"] == "New Choice" 
+    assert len(data["choices"]) == 2

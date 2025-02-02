@@ -7,7 +7,6 @@ class ChoiceCreate(BaseModel):
     text: str
     value: float
     order: int
-    is_correct: bool = False
 
     @field_validator('value')
     @classmethod
@@ -19,6 +18,9 @@ class ChoiceRead(ChoiceCreate):
     id: int
     created_at: datetime
     question_id: int
+
+class ChoiceUpdate(ChoiceCreate):
+    id: Optional[int] = None
 
 class QuestionCreate(BaseModel):
     text: str
@@ -37,6 +39,9 @@ class QuestionRead(QuestionCreate):
     created_at: datetime
     assessment_id: int
     choices: List[ChoiceRead]
+
+class QuestionUpdate(QuestionCreate):
+    choices: List[ChoiceUpdate]
 
 class AssessmentCreate(BaseModel):
     title: str
