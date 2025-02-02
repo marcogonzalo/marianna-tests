@@ -55,7 +55,7 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
 
         const handleAddChoice = () => {
             const newChoice: Choice = {
-                id: undefined, // Temporary ID, replace with actual ID from backend
+                id: -Date.now(), // Temporary ID to avoid object overwriting in array, replace with actual ID from backend
                 text: '',
                 order: localChoices.length + 1,
                 value: 0,
@@ -65,10 +65,10 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
         };
 
         return (
-            <div>
-                {sortedChoices.map((choice, index) => (
+            <>
+                {sortedChoices.map((choice) => (
                     <ChoiceForm
-                        key={choice.id ?? index}
+                        key={choice.id}
                         {...choice}
                         onChange={handleChoiceChange}
                         onDelete={() => handleDeleteChoice(choice.id)}
@@ -81,7 +81,7 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
                 >
                     Add Choice
                 </FormButton>
-            </div>
+            </>
         );
     },
 );
