@@ -4,7 +4,6 @@ import {
     AssessmentAPI,
     Question,
     QuestionAPI,
-    ChoiceAPI,
 } from '@/features/assessments/types/';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
 
@@ -49,31 +48,6 @@ export async function updateQuestion(data: Question): Promise<Question> {
         },
     );
     const updatedQuestion = transformKeys(response, toCamelCase) as Question;
-
-    // Process choices
-    for (const choice of data.choices) {
-        const transformedChoice = transformKeys(
-            choice,
-            toSnakeCase,
-        ) as ChoiceAPI;
-        if (choice.id) {
-            await fetchApi<ChoiceAPI>(
-                `/assessments/${data.assessmentId}/questions/${data.id}/choices/${choice.id}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(transformedChoice),
-                },
-            );
-        } else {
-            await fetchApi<ChoiceAPI>(
-                `/assessments/${data.assessmentId}/questions/${data.id}/choices`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify(transformedChoice),
-                },
-            );
-        }
-    }
 
     return updatedQuestion;
 }
