@@ -55,7 +55,7 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
     };
 
     return (
-        <div>
+        <div className="flex flex-col gap-y-5">
             {isEditing && (
                 <FormButton onClick={handleAddQuestion}>
                     Add Question
