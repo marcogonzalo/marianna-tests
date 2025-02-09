@@ -50,7 +50,6 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
     };
 
     const handleDeleteQuestion = async (questionId: number) => {
-        console.log('handleDeleteQuestion:', questionId, localQuestions);
         try {
             if (questionId > 0) await deleteQuestion(assessmentId, questionId);
             setLocalQuestions(
@@ -75,6 +74,14 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
         setLocalQuestions([...localQuestions, newQuestion]);
     };
 
+    const handleQuestionChange = (updatedQuestion: QuestionType) => {
+        setLocalQuestions((prevQuestions) =>
+            prevQuestions.map((question) =>
+                question.id === updatedQuestion.id ? updatedQuestion : question,
+            ),
+        );
+    };
+
     return (
         <div className="flex flex-col gap-y-5">
             {isEditing && (
@@ -85,13 +92,15 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
             {sortedQuestions.map((question, index) =>
                 isEditing ? (
                     <QuestionForm
-                        key={index}
+                        key={`question-${question.id}`}
                         {...question}
+                        order={index + 1}
                         onSave={handleSaveQuestion}
                         onDelete={handleDeleteQuestion}
+                        onChange={handleQuestionChange}
                     />
                 ) : (
-                    <Question key={question.id} {...question} />
+                    <Question key={`question-${question.id}`} {...question} />
                 ),
             )}
         </div>

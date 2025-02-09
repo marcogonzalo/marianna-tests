@@ -78,10 +78,11 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
 
         return (
             <>
-                {sortedChoices.map((choice) => (
+                {sortedChoices.map((choice, index) => (
                     <ChoiceForm
                         key={choice.id}
                         {...choice}
+                        order={index + 1}
                         onChange={handleChoiceChange}
                         onDelete={() => handleDeleteChoice(choice.id)}
                     />
