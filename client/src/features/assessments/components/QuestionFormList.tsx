@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Question from './Question';
 import QuestionForm from './QuestionForm';
 import { Question as QuestionType } from '@/features/assessments/types';
@@ -7,6 +7,7 @@ import {
     createQuestion,
     getAssessment,
     updateQuestion,
+    deleteQuestion,
 } from '@/features/assessments/api'; // Import the API handler
 
 interface QuestionFormListProps {
@@ -22,13 +23,18 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
 }) => {
     const [localQuestions, setLocalQuestions] =
         useState<QuestionType[]>(questions);
+    const [sortedQuestions, setSortedQuestions] =
+        useState<QuestionType[]>(questions);
 
-    const sortedQuestions = [...localQuestions].sort(
-        (a, b) => (a.order ?? 0) - (b.order ?? 0),
-    );
+    useEffect(() => {
+        setSortedQuestions(
+            [...localQuestions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+        );
+    }, [localQuestions]);
 
     const handleSaveQuestion = async (question: QuestionType) => {
         try {
+            if (question.id && question.id <= 0) question.id = undefined;
             // Add your API call here to save the question
             if (question.id) {
                 await updateQuestion(question);
@@ -43,12 +49,27 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
         }
     };
 
+    const handleDeleteQuestion = async (questionId: number) => {
+        console.log('handleDeleteQuestion:', questionId, localQuestions);
+        try {
+            if (questionId > 0) await deleteQuestion(assessmentId, questionId);
+            setLocalQuestions(
+                localQuestions.filter((q) => q.id !== questionId),
+            );
+        } catch (error) {
+            console.error('Error deleting question:', error);
+        }
+    };
+
     const handleAddQuestion = () => {
         const newQuestion: QuestionType = {
-            id: undefined, // Temporary ID, replace with actual ID from backend
+            id: -Date.now(), // Temporary ID, replace with actual ID from backend
             assessmentId,
             text: '',
-            order: localQuestions.length + 1,
+            order:
+                Number(
+                    sortedQuestions[sortedQuestions.length - 1]?.order || 0,
+                ) + 1,
             choices: [],
         };
         setLocalQuestions([...localQuestions, newQuestion]);
@@ -67,6 +88,7 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
                         key={index}
                         {...question}
                         onSave={handleSaveQuestion}
+                        onDelete={handleDeleteQuestion}
                     />
                 ) : (
                     <Question key={question.id} {...question} />

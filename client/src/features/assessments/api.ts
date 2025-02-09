@@ -51,3 +51,12 @@ export async function updateQuestion(data: Question): Promise<Question> {
 
     return updatedQuestion;
 }
+
+export async function deleteQuestion(
+    assessmentId: number,
+    questionId: number,
+): Promise<void> {
+    await fetchApi(`/assessments/${assessmentId}/questions/${questionId}`, {
+        method: 'DELETE',
+    });
+}

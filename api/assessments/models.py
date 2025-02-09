@@ -1,9 +1,8 @@
 from typing import Optional, List
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Session, select
 from datetime import datetime, timezone
 from enum import Enum
 from sqlalchemy import Text
-from sqlmodel import Session, select
 
 class ScoringMethod(str, Enum):
     BOOLEAN = "boolean"  # Simple true/false, adds 1 or 0
@@ -74,7 +73,10 @@ class Question(SQLModel, table=True):
 
     # Relationships
     assessment: Assessment = Relationship(back_populates="questions")
-    choices: List["Choice"] = Relationship(back_populates="question")
+    choices: List["Choice"] = Relationship(
+        back_populates="question",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
     # Methods
     def update_attributes(self, question_data: dict) -> None:
@@ -90,6 +92,7 @@ class Question(SQLModel, table=True):
 
         # Delete choices that are not in the update data
         choices_to_delete = existing_choice_ids - updated_choice_ids
+        print("choices to delete ************ ", choices_to_delete)
         if choices_to_delete:
             self.delete_choices(list(choices_to_delete), session)
 
@@ -116,11 +119,12 @@ class Question(SQLModel, table=True):
 
     def delete_choices(self, choice_ids: List[int], session: Session) -> None:
         if choice_ids:
-            session.exec(
-                select(Choice)
-                .where(Choice.question_id == self.id)
-                .where(Choice.id.in_(choice_ids))
-            ).delete()
+            # Delete choices directly using a DELETE query
+            statement = Choice.__table__.delete().where(
+                Choice.id.in_(choice_ids),
+                Choice.question_id == self.id
+            )
+            session.execute(statement)
 
 
 class Choice(SQLModel, table=True):
