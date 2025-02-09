@@ -7,11 +7,13 @@ import { DocumentCheckIcon, TrashIcon } from '@heroicons/react/20/solid';
 interface QuestionFormProps extends Question {
     onSave?: (question: Question) => void;
     onDelete?: (questionId: number) => void; // Add this line
+    onChange: (updatedQuestion: Question) => void;
 }
 
 export default function QuestionForm({
     onSave,
     onDelete, // Add this line
+    onChange,
     ...question
 }: QuestionFormProps) {
     const [text, setText] = useState(question.text);
@@ -24,11 +26,12 @@ export default function QuestionForm({
         JSON.stringify(choices) !== JSON.stringify(question.choices);
 
     useEffect(() => {
+        setText(question.text);
+        setOrder(question.order || 0);
         setChoices(question.choices || []);
-    }, [question.choices]);
+    }, [question.text, question.order, question.choices]);
 
     const handleSubmit = async (e: React.FormEvent) => {
-        console.log('handleSubmit:', e.target);
         e.preventDefault();
         if (!text.trim()) {
             alert('Question text is required');
@@ -53,8 +56,6 @@ export default function QuestionForm({
         try {
             if (onSave) {
                 await onSave(updatedQuestion);
-                // // Update local choices state with the current choices after save
-                // setChoices(currentChoices);
             }
         } catch (error) {
             console.error('Error saving question:', error);
@@ -71,6 +72,14 @@ export default function QuestionForm({
         setChoices(newChoices);
     };
 
+    const handleChange = (field: keyof Question, newValue: string | number) => {
+        const updatedQuestion = {
+            ...question,
+            [field]: field === 'text' ? newValue : Number(newValue),
+        };
+        onChange(updatedQuestion);
+    };
+
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-8 gap-4">
@@ -79,14 +88,20 @@ export default function QuestionForm({
                     id="questionText"
                     type="text"
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => {
+                        setText(e.target.value);
+                        handleChange('text', e.target.value);
+                    }}
                     blockClassName="col-span-6"
                 />
                 <FormInput
                     label="Order"
                     type="number"
                     value={order}
-                    onChange={(e) => setOrder(Number(e.target.value))}
+                    onChange={(e) => {
+                        setOrder(Number(e.target.value));
+                        handleChange('order', Number(e.target.value));
+                    }}
                 />
                 <div className="flex items-end">
                     <FormButton
