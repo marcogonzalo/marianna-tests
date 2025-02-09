@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Choice } from '@/features/assessments/types';
 import { FormButton } from '@/components/ui';
 import ChoiceForm from './ChoiceForm';
@@ -16,10 +16,20 @@ export interface ChoiceFormListRef {
 const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
     ({ choices }, ref) => {
         const [localChoices, setLocalChoices] = useState<Choice[]>(choices);
+        const [sortedChoices, setSortedChoices] = useState<Choice[]>(choices);
 
-        const sortedChoices = [...localChoices].sort(
-            (a, b) => (a.order ?? 0) - (b.order ?? 0),
-        );
+        // Add this useEffect to update localChoices when props change
+        useEffect(() => {
+            setLocalChoices(choices);
+        }, [choices]);
+
+        useEffect(() => {
+            setSortedChoices(
+                [...localChoices].sort(
+                    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                ),
+            );
+        }, [localChoices]);
 
         const handleChoiceChange = (updatedChoice: Choice) => {
             setLocalChoices((prevChoices) =>
@@ -39,7 +49,6 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
             getChoices: () => localChoices,
             validateChoices: () => {
                 for (const choice of localChoices) {
-                    console.log(choice);
                     if (!choice.text.trim()) {
                         alert('All choices must have text');
                         return false;
@@ -57,7 +66,10 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
             const newChoice: Choice = {
                 id: -Date.now(), // Temporary ID to avoid object overwriting in array, replace with actual ID from backend
                 text: '',
-                order: localChoices.length + 1,
+                order:
+                    Number(
+                        sortedChoices[sortedChoices.length - 1]?.order || 0,
+                    ) + 1,
                 value: 0,
                 questionId: 0,
             };
