@@ -14,7 +14,7 @@ export default function FormLabel({
     return (
         <Label
             htmlFor={htmlFor}
-            className={`text-sm/6 font-medium text-gray-900 ${className}`}
+            className={`text-sm/6 font-medium text-gray-700 ${className}`}
         >
             {children}
         </Label>
