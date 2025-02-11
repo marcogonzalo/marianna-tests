@@ -59,4 +59,29 @@ def test_set_default_values_custom():
         max_value=0
     )
     with pytest.raises(ValueError, match="Custom scoring method requires explicit min_value and max_value"):
-        assessment.set_default_values() 
+        assessment.set_default_values()
+
+def test_assessment_relationships(session):
+    assessment = Assessment(
+        title="Test Assessment",
+        scoring_method=ScoringMethod.BOOLEAN,
+        min_value=0,
+        max_value=1
+    )
+    session.add(assessment)
+    session.commit()
+
+    assert hasattr(assessment, 'questions')
+    assert hasattr(assessment, 'responses')
+    assert isinstance(assessment.questions, list)
+    assert isinstance(assessment.responses, list)
+
+def test_assessment_invalid_custom_scoring():
+    assessment = Assessment(
+        title="Test Assessment",
+        scoring_method=ScoringMethod.CUSTOM,
+        min_value=None,  # Invalid for CUSTOM
+        max_value=None   # Invalid for CUSTOM
+    )
+    with pytest.raises(ValueError):
+        assessment.set_default_values()

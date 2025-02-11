@@ -1,7 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel, field_validator
 from datetime import datetime
-from .models import ScoringMethod
+from .models import ScoringMethod, ResponseStatus
 
 class ChoiceCreate(BaseModel):
     text: str
@@ -107,8 +107,63 @@ class AssessmentCreate(BaseModel):
             raise ValueError("max_value must be greater than min_value")
         return v
 
+    @field_validator('scoring_method')
+    @classmethod
+    def validate_scoring_method(cls, v, info):
+        values = info.data
+        if v == ScoringMethod.CUSTOM:
+            if values.get('min_value') is None or values.get('max_value') is None:
+                raise ValueError("Custom scoring method requires explicit min_value and max_value")
+        return v
+
 class AssessmentRead(AssessmentCreate):
     id: int
     created_at: datetime
     updated_at: datetime
     questions: List[QuestionRead]
+
+class QuestionResponseCreate(BaseModel):
+    numeric_value: Optional[float] = None
+    text_value: Optional[str] = None
+    question_id: int
+
+    @field_validator('numeric_value', 'text_value')
+    @classmethod
+    def validate_value_present(cls, v, info):
+        values = info.data
+        if values.get('numeric_value') is None and values.get('text_value') is None:
+            raise ValueError("Either numeric_value or text_value must be provided")
+        return v
+
+class QuestionResponseRead(QuestionResponseCreate):
+    id: int
+    created_at: datetime
+    assessment_response_id: int
+
+class AssessmentResponseCreate(BaseModel):
+    assessment_id: int
+    status: ResponseStatus
+    question_responses: List[QuestionResponseCreate]
+
+class AssessmentResponseUpdate(BaseModel):
+    status: ResponseStatus
+    score: Optional[float] = None
+
+class AssessmentResponseRead(BaseModel):
+    id: int
+    status: ResponseStatus
+    score: Optional[float]
+    created_at: datetime
+    updated_at: datetime
+    assessment_id: int
+    question_responses: List[QuestionResponseRead]
+
+class BulkQuestionResponseCreate(BaseModel):
+    responses: List[QuestionResponseCreate]
+
+    @field_validator('responses')
+    @classmethod
+    def validate_responses(cls, v):
+        if not v:
+            raise ValueError("At least one response is required")
+        return v

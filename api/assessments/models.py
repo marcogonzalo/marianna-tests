@@ -31,6 +31,7 @@ class Assessment(SQLModel, table=True):
 
     # Relationships
     questions: List["Question"] = Relationship(back_populates="assessment")
+    responses: List["AssessmentResponse"] = Relationship(back_populates="assessment")
 
 class Question(SQLModel, table=True):
     """Question model represents a question in an assessment.
@@ -79,8 +80,10 @@ class Question(SQLModel, table=True):
     )
 
     # Methods
-    def update_attributes(self, question_data: dict) -> None:
-        only_question_data = question_data.dict(exclude={"choices"})
+    def update_attributes(self, question_data) -> None:
+        """Update question attributes from pydantic model or dict."""
+        data = question_data.dict() if hasattr(question_data, 'dict') else question_data
+        only_question_data = {k: v for k, v in data.items() if k != 'choices'}
         for key, value in only_question_data.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -92,28 +95,38 @@ class Question(SQLModel, table=True):
 
         # Delete choices that are not in the update data
         choices_to_delete = existing_choice_ids - updated_choice_ids
-        print("choices to delete ************ ", choices_to_delete)
         if choices_to_delete:
             self.delete_choices(list(choices_to_delete), session)
 
     def update_choices(self, choices: List["Choice"], session: Session) -> List[int]:
         updated_choice_ids = set()
         for choice_data in choices:
-            if hasattr(choice_data, 'id') and choice_data.id:
+            # Handle both SQLModel Choice instances and ChoiceCreate schema instances
+            choice_dict = choice_data.dict() if hasattr(choice_data, 'dict') else vars(choice_data)
+            choice_id = getattr(choice_data, 'id', None)
+
+            if choice_id:
                 # Update existing choice
                 choice = session.exec(
                     select(Choice)
                     .where(Choice.question_id == self.id)
-                    .where(Choice.id == choice_data.id)
+                    .where(Choice.id == choice_id)
                 ).first()
                 if choice:
-                    for key, value in choice_data.dict(exclude={"id"}).items():
-                        setattr(choice, key, value)
+                    for key, value in choice_dict.items():
+                        if key != 'id' and hasattr(choice, key):
+                            setattr(choice, key, value)
                     updated_choice_ids.add(choice.id)
             else:
                 # Create new choice
-                new_choice = Choice(**choice_data.dict(exclude={"id"}), question_id=self.id)
+                new_choice = Choice(
+                    **{k: v for k, v in choice_dict.items() if k != 'id'},
+                    question_id=self.id
+                )
                 session.add(new_choice)
+                session.commit()
+                session.refresh(new_choice)
+                updated_choice_ids.add(new_choice.id)
 
         return updated_choice_ids
 
@@ -139,3 +152,37 @@ class Choice(SQLModel, table=True):
 
     # Relationships
     question: Question = Relationship(back_populates="choices")
+
+class ResponseStatus(str, Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    ABANDONED = "abandoned"
+
+class AssessmentResponse(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    status: ResponseStatus = Field(default=ResponseStatus.PENDING)
+    score: Optional[float] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # Foreign keys
+    assessment_id: int = Field(foreign_key="assessment.id")
+
+    # Relationships
+    assessment: Assessment = Relationship(back_populates="responses")
+    question_responses: List["QuestionResponse"] = Relationship(back_populates="assessment_response")
+
+class QuestionResponse(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    numeric_value: Optional[float] = None
+    text_value: Optional[str] = Field(default=None, sa_type=Text)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # Foreign keys
+    question_id: int = Field(foreign_key="question.id")
+    selected_choice_id: Optional[int] = Field(foreign_key="choice.id", default=None)
+    assessment_response_id: int = Field(foreign_key="assessmentresponse.id")
+
+    # Relationships
+    assessment_response: AssessmentResponse = Relationship(back_populates="question_responses")
+    selected_choice: Optional[Choice] = Relationship()

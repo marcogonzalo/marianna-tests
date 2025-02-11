@@ -14,7 +14,7 @@ if api_path not in sys.path:
 
 from main import app
 from database import get_session
-from assessments.models import Assessment, Question, Choice
+from assessments.models import Assessment, Question, Choice, ScoringMethod
 
 # Use in-memory SQLite for testing
 TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -30,10 +30,20 @@ def engine_fixture():
     yield engine
     SQLModel.metadata.drop_all(engine)
 
-@pytest.fixture(name="session")
-def session_fixture(engine):
+@pytest.fixture
+def session():
+    from database import engine
+    from sqlmodel import SQLModel, Session
+
+    # Create all tables
+    SQLModel.metadata.create_all(engine)
+
+    # Create a new session for testing
     with Session(engine) as session:
         yield session
+
+    # Drop all tables after test
+    SQLModel.metadata.drop_all(engine)
 
 @pytest.fixture(name="client")
 def client_fixture(session: Session):
@@ -56,12 +66,12 @@ async def async_client_fixture(session: Session) -> AsyncGenerator:
     app.dependency_overrides.clear()
 
 # Test data fixtures
-@pytest.fixture(name="sample_assessment")
-def sample_assessment_fixture(session: Session) -> Assessment:
+@pytest.fixture
+def sample_assessment(session: Session):
     assessment = Assessment(
         title="Test Assessment",
-        description="A test assessment",
-        scoring_method="boolean",
+        description="Test Description",
+        scoring_method=ScoringMethod.BOOLEAN,
         min_value=0,
         max_value=1
     )
