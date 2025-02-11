@@ -8,7 +8,7 @@ services:
       - 8000:8000
     volumes:
       - ./api:/app
-      - /app/.venv/  # This excludes the virtual environment directory
+      - /app/.venv/ # This excludes the virtual environment directory
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -17,6 +17,8 @@ services:
     depends_on:
       - db
     # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - app-network
 
   client:
     build:
@@ -32,6 +34,8 @@ services:
     command: npm run dev
     depends_on:
       - api
+    networks:
+      - app-network
 
   db:
     image: postgres:15
@@ -45,6 +49,12 @@ services:
       - ./api/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:

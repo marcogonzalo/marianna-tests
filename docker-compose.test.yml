@@ -32,5 +32,39 @@ services:
     environment:
       PYTHONDONTWRITEBYTECODE: 1
       PYTHONUNBUFFERED: 1
-      DATABASE_URL: 'sqlite:///:memory:'
-    command: pytest -v 
+      DATABASE_URL: "postgresql://postgres:postgres@db-test:5432/test_db"
+      PYTHONPATH: /app
+    depends_on:
+      db-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: pytest -v
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-test:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=test_db
+    ports:
+      - "5433:5432" # Different port to avoid conflicts with dev database
+    networks:
+      - test-network
+    tmpfs:
+      - /var/lib/postgresql/data # Use tmpfs for faster testing
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  test-network:
+    name: test-network
+    driver: bridge
