@@ -92,3 +92,21 @@ export async function createAssessmentResponse(
     );
     return transformKeys(data, toCamelCase) as AssessmentResponse;
 }
+
+export async function updateAssessmentResponse(
+    responseId: number,
+    data: AssessmentResponse,
+): Promise<AssessmentResponse> {
+    const transformedData = transformKeys(
+        data,
+        toSnakeCase,
+    ) as AssessmentResponseAPI;
+    const response = await fetchApi<AssessmentResponseAPI>(
+        `/assessments/responses/${responseId}`,
+        {
+            method: 'PUT',
+            body: JSON.stringify(transformedData),
+        },
+    );
+    return transformKeys(response, toCamelCase) as AssessmentResponse;
+}

@@ -3,7 +3,7 @@ import Choice from './Choice';
 
 interface ChoiceListProps {
     choices: ChoiceType[];
-    name: string; // Add name prop for radio group
+    name: string; // name for radio group
 }
 
 export default function ChoiceList({ choices, name }: ChoiceListProps) {

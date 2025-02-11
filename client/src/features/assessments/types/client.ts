@@ -29,3 +29,21 @@ export interface Choice {
     createdAt?: string;
     questionId: number;
 }
+
+export interface AssessmentResponse {
+    id?: number;
+    assessmentId?: number;
+    status?: 'in_progress' | 'completed' | 'abandoned';
+    score?: number;
+    createdAt?: string;
+    updatedAt?: string;
+    questionResponses?: QuestionResponse[];
+}
+
+export interface QuestionResponse {
+    id?: number;
+    assessmentResponseId: number;
+    questionId: number;
+    numericValue: number;
+    createdAt?: string;
+}
