@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from typing import List
-from .models import Assessment, Question, Choice
+from .models import Assessment, Question, AssessmentResponse, QuestionResponse, ResponseStatus, ScoringMethod
 from .schemas import (
     AssessmentCreate, AssessmentRead,
     QuestionCreate, QuestionRead,
-    # ChoiceCreate, ChoiceRead,
-    QuestionUpdate  # Add this import
+    QuestionUpdate,
+    AssessmentResponseCreate, AssessmentResponseRead,
+    BulkQuestionResponseCreate
 )
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
@@ -16,9 +17,19 @@ from database import get_session
 # Assessment endpoints
 @router.post("/", response_model=AssessmentRead)
 async def create_assessment(assessment: AssessmentCreate, session: Session = Depends(get_session)):
+    # Validate custom scoring requirements
+    if assessment.scoring_method == ScoringMethod.CUSTOM:
+        if assessment.min_value is None or assessment.max_value is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Custom scoring method requires explicit min_value and max_value"
+            )
+
     db_assessment = Assessment(**assessment.dict(exclude={"questions"}))
-    if not (assessment.min_value or assessment.max_value):
+
+    if not assessment.min_value and not assessment.max_value:
         db_assessment.set_default_values()
+
     session.add(db_assessment)
     session.commit()
     session.refresh(db_assessment)
@@ -155,3 +166,116 @@ async def delete_question(
     session.delete(question)
     session.commit()
     return {"message": "Question deleted"}
+
+@router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
+async def create_assessment_response(
+    assessment_id: int,
+    session: Session = Depends(get_session)
+):
+    # Verify assessment exists
+    assessment = session.get(Assessment, assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    # Create new assessment response
+    assessment_response = AssessmentResponse(
+        assessment_id=assessment_id,
+        status=ResponseStatus.PENDING,
+        score=None  # Initialize score as None
+    )
+
+    session.add(assessment_response)
+    session.commit()
+    session.refresh(assessment_response)
+
+    return AssessmentResponseRead(
+        id=assessment_response.id,
+        assessment_id=assessment_response.assessment_id,
+        status=assessment_response.status,
+        score=assessment_response.score,
+        question_responses=[],  # Initialize with empty list
+        created_at=assessment_response.created_at,
+        updated_at=assessment_response.updated_at
+    )
+
+# Assessment Response endpoints
+@router.put("/responses/{response_id}", response_model=AssessmentResponseRead)
+async def create_bulk_responses(
+    response_id: int,
+    bulk_responses: BulkQuestionResponseCreate,
+    session: Session = Depends(get_session)
+):
+    assessment_response = session.get(AssessmentResponse, response_id)
+    if not assessment_response:
+        raise HTTPException(status_code=404, detail="Assessment response not found")
+
+    # Create all question responses
+    question_responses = []
+    total_score = 0
+    all_numeric = True
+
+    for response_data in bulk_responses.responses:
+        question = session.get(Question, response_data.question_id)
+        if not question:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Question {response_data.question_id} not found"
+            )
+
+        question_response = QuestionResponse(
+            assessment_response_id=response_id,
+            **response_data.dict()
+        )
+
+        if response_data.numeric_value is not None:
+            total_score += response_data.numeric_value
+        else:
+            all_numeric = False
+
+        session.add(question_response)
+        question_responses.append(question_response)
+
+    # Update assessment response status and score if all responses are numeric
+    if all_numeric:
+        assessment_response.score = total_score
+        assessment_response.status = ResponseStatus.COMPLETED
+
+    session.commit()
+    session.refresh(assessment_response)
+
+    return AssessmentResponseRead(
+        id=assessment_response.id,
+        assessment_id=assessment_response.assessment_id,
+        status=assessment_response.status,
+        score=assessment_response.score,
+        question_responses=question_responses,
+        created_at=assessment_response.created_at,
+        updated_at=assessment_response.updated_at
+    )
+
+@router.get("/responses/{response_id}", response_model=AssessmentResponseRead)
+async def get_bulk_responses(
+    response_id: int,
+    session: Session = Depends(get_session)
+):
+    # Get the assessment response with relationships
+    assessment_response = session.get(AssessmentResponse, response_id)
+    if not assessment_response:
+        raise HTTPException(status_code=404, detail="Assessment response not found")
+
+    # Get all question responses for this assessment response
+    question_responses = session.exec(
+        select(QuestionResponse)
+        .where(QuestionResponse.assessment_response_id == response_id)
+    ).all()
+
+    # Return complete assessment response data
+    return AssessmentResponseRead(
+        id=assessment_response.id,
+        assessment_id=assessment_response.assessment_id,
+        status=assessment_response.status,
+        score=assessment_response.score,
+        question_responses=question_responses,
+        created_at=assessment_response.created_at,
+        updated_at=assessment_response.updated_at
+    )

@@ -1,16 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from assessments.routes import router as assessments_router
 from database import create_db_and_tables
 import os
 
+CLIENT_URL = os.getenv("CLIENT_URL")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+    # Clean up tasks here
+
 app = FastAPI(
     title="Assessments API",
     description="API for managing assessments and their questions",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-CLIENT_URL = os.getenv("CLIENT_URL")
 
 # Add CORS middleware
 app.add_middleware(
@@ -20,10 +29,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
 
 # Include the assessments router
 app.include_router(assessments_router)
