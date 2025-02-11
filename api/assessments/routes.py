@@ -3,8 +3,8 @@ from sqlmodel import Session, select
 from typing import List
 from .models import Assessment, Question, AssessmentResponse, QuestionResponse, ResponseStatus, ScoringMethod
 from .schemas import (
-    AssessmentCreate, AssessmentRead,
-    QuestionCreate, QuestionRead,
+    AssessmentCreate, AssessmentRead, AssessmentResponseUpdate,
+    QuestionCreate, QuestionRead, QuestionResponseRead,
     QuestionUpdate,
     AssessmentResponseCreate, AssessmentResponseRead,
     BulkQuestionResponseCreate
@@ -167,6 +167,18 @@ async def delete_question(
     session.commit()
     return {"message": "Question deleted"}
 
+# Assessment Response endpoints
+@router.get("/{assessment_id}/responses", response_model=List[AssessmentResponseRead])
+async def list_assessment_responses(
+    assessment_id: int,
+    session: Session = Depends(get_session)
+):
+    responses = session.exec(
+        select(AssessmentResponse)
+        .where(AssessmentResponse.assessment_id == assessment_id)
+    ).all()
+    return responses
+
 @router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
 async def create_assessment_response(
     assessment_id: int,
@@ -205,6 +217,7 @@ async def create_bulk_responses(
     bulk_responses: BulkQuestionResponseCreate,
     session: Session = Depends(get_session)
 ):
+    print("HOLAHOLAHOLAHOLAHOLAHOLA")
     assessment_response = session.get(AssessmentResponse, response_id)
     if not assessment_response:
         raise HTTPException(status_code=404, detail="Assessment response not found")
@@ -213,15 +226,15 @@ async def create_bulk_responses(
     question_responses = []
     total_score = 0
     all_numeric = True
-
-    for response_data in bulk_responses.responses:
+    print("********************", bulk_responses.question_responses)
+    for response_data in bulk_responses.question_responses:
         question = session.get(Question, response_data.question_id)
         if not question:
             raise HTTPException(
                 status_code=404,
                 detail=f"Question {response_data.question_id} not found"
             )
-
+        print("response_data", response_data.dict())
         question_response = QuestionResponse(
             assessment_response_id=response_id,
             **response_data.dict()
@@ -243,12 +256,25 @@ async def create_bulk_responses(
     session.commit()
     session.refresh(assessment_response)
 
+
+    # Convert QuestionResponse models to QuestionResponseRead before returning
+    question_responses_read = [
+        QuestionResponseRead(
+            id=qr.id,
+            question_id=qr.question_id,
+            assessment_response_id=qr.assessment_response_id,
+            numeric_value=qr.numeric_value,
+            text_value=qr.text_value,
+            created_at=qr.created_at
+        ) for qr in assessment_response.question_responses
+    ]
+
     return AssessmentResponseRead(
         id=assessment_response.id,
         assessment_id=assessment_response.assessment_id,
         status=assessment_response.status,
         score=assessment_response.score,
-        question_responses=question_responses,
+        question_responses=question_responses_read,
         created_at=assessment_response.created_at,
         updated_at=assessment_response.updated_at
     )

@@ -2,6 +2,8 @@ import { fetchApi } from '@/lib/api';
 import {
     Assessment,
     AssessmentAPI,
+    AssessmentResponse,
+    AssessmentResponseAPI,
     Question,
     QuestionAPI,
 } from '@/features/assessments/types/';
@@ -59,4 +61,34 @@ export async function deleteQuestion(
     await fetchApi(`/assessments/${assessmentId}/questions/${questionId}`, {
         method: 'DELETE',
     });
+}
+
+export async function getAssessmentResponses(
+    assessmentId: number,
+): Promise<AssessmentResponse[]> {
+    const data = await fetchApi<AssessmentResponseAPI[]>(
+        `/assessments/${assessmentId}/responses`,
+    );
+    return transformKeys(data, toCamelCase) as AssessmentResponse[];
+}
+
+export async function getAssessmentResponse(
+    responseId: number,
+): Promise<AssessmentResponse> {
+    const data = await fetchApi<AssessmentResponse>(
+        `/assessments/responses/${responseId}`,
+    );
+    return transformKeys(data, toCamelCase) as AssessmentResponse;
+}
+
+export async function createAssessmentResponse(
+    assessmentId: number,
+): Promise<AssessmentResponse> {
+    const data = await fetchApi<AssessmentResponse>(
+        `/assessments/${assessmentId}/responses`,
+        {
+            method: 'POST',
+        },
+    );
+    return transformKeys(data, toCamelCase) as AssessmentResponse;
 }
