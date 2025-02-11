@@ -130,8 +130,14 @@ class QuestionResponseCreate(BaseModel):
     @field_validator('numeric_value', 'text_value')
     @classmethod
     def validate_value_present(cls, v, info):
-        values = info.data
-        if values.get('numeric_value') is None and values.get('text_value') is None:
+        # Get the other value from the current validation context
+        if info.field_name == 'numeric_value':
+            other_value = info.data.get('text_value')
+        else:
+            other_value = info.data.get('numeric_value')
+
+        # If both the current value and the other value are None, raise error
+        if v is None and other_value is None:
             raise ValueError("Either numeric_value or text_value must be provided")
         return v
 
@@ -159,9 +165,9 @@ class AssessmentResponseRead(BaseModel):
     question_responses: List[QuestionResponseRead]
 
 class BulkQuestionResponseCreate(BaseModel):
-    responses: List[QuestionResponseCreate]
+    question_responses: List[QuestionResponseCreate]
 
-    @field_validator('responses')
+    @field_validator('question_responses')
     @classmethod
     def validate_responses(cls, v):
         if not v:
