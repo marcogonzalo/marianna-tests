@@ -5,7 +5,8 @@ from contextlib import asynccontextmanager
 from database import create_db_and_tables
 from assessments.models import *
 from assessments.routes import router as assessments_router
-
+from users.models import *
+from users.routes import users_router, accounts_router
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 
@@ -34,7 +35,8 @@ app.add_middleware(
 
 # Include the assessments router
 app.include_router(assessments_router)
-
+app.include_router(users_router)
+app.include_router(accounts_router)
 
 @app.get("/health")
 def health_check():
