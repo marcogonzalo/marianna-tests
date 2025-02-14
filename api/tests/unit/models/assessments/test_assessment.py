@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime
 from assessments.models import Assessment, ScoringMethod
 from sqlmodel import Session
 
@@ -14,7 +14,7 @@ def test_assessment_creation(session: Session):
     session.add(assessment)
     session.commit()
     session.refresh(assessment)
-    
+
     assert assessment.title == "Test Assessment"
     assert assessment.description == "Test Description"
     assert assessment.scoring_method == ScoringMethod.BOOLEAN
@@ -33,7 +33,7 @@ def test_assessment_default_values(session: Session):
     session.add(assessment)
     session.commit()
     session.refresh(assessment)
-    
+
     assert assessment.description is None
     assert isinstance(assessment.created_at, datetime)
     assert isinstance(assessment.updated_at, datetime)
