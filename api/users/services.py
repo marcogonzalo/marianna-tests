@@ -4,7 +4,7 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 from .models import User, Account
 from .schemas import UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
-from users import utils
+from utils.password import get_password_hash
 
 class UserService:
     @staticmethod
@@ -26,7 +26,7 @@ class UserService:
     def create_user(db: Session, user: UserCreate) -> UserRead:
         db_user = User(
             email=user.email,
-            password_hash=utils.get_password_hash(user.password)
+            password_hash=get_password_hash(user.password)
         )
         db.add(db_user)
         db.commit()
@@ -39,7 +39,7 @@ class UserService:
         if db_user:
             update_data = user.model_dump(exclude_unset=True)
             if "password" in update_data:
-                update_data["password_hash"] = utils.get_password_hash(update_data.pop("password"))
+                update_data["password_hash"] = get_password_hash(update_data.pop("password"))
             for key, value in update_data.items():
                 setattr(db_user, key, value)
             db_user.updated_at = datetime.utcnow()

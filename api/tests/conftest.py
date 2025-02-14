@@ -7,7 +7,7 @@ from sqlmodel.pool import StaticPool
 import sys
 from pathlib import Path
 
-from users.utils import get_password_hash
+from utils.password import get_password_hash
 from assessments.models import Assessment, Choice, Question, ScoringMethod
 from users.models import User, Account
 

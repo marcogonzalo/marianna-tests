@@ -9,8 +9,7 @@ uvicorn = {extras = ["standard"], version = "==0.34.0"}
 gunicorn = "==22.0.0"
 sqlmodel = ">=0.0.14,<0.1.0"
 psycopg2-binary = "*"
-passlib = "*"
-bcrypt = "*"
+bcrypt = "==4.0.1"
 
 [dev-packages]
 pytest = "*"
@@ -19,3 +18,6 @@ httpx = "*"
 
 [requires]
 python_version = "3.13"
+
+[scripts]
+create-admin = "python scripts/create_admin.py"

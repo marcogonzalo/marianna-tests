@@ -20,11 +20,14 @@ ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 FROM python-base AS base
 RUN apt-get update && apt-get install -y \
     curl \
+    gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pipenv
-RUN pip install pipenv
+RUN pip install --no-cache-dir pipenv
 
+ENV PYTHONPATH=/app
 WORKDIR /app
 COPY Pipfile Pipfile.lock ./
 
@@ -38,7 +41,6 @@ CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
 FROM base AS api-test
 RUN pipenv install --dev --system --deploy
 COPY . .
-ENV PYTHONPATH=/app
 CMD ["pytest", "-v"]
 
 # Production stage
