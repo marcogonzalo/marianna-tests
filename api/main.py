@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from assessments.routes import router as assessments_router
-from database import create_db_and_tables
 import os
+from contextlib import asynccontextmanager
+from database import create_db_and_tables
+from assessments.models import *
+from assessments.routes import router as assessments_router
+
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 
@@ -32,6 +34,7 @@ app.add_middleware(
 
 # Include the assessments router
 app.include_router(assessments_router)
+
 
 @app.get("/health")
 def health_check():

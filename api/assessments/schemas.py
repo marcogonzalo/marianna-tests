@@ -1,7 +1,8 @@
 from typing import Optional, List
-from pydantic import BaseModel, field_validator
-from datetime import datetime
+from pydantic import BaseModel, field_validator, Field
+from datetime import datetime, timezone
 from .models import ScoringMethod, ResponseStatus
+from utils.datetime import get_current_datetime
 
 class ChoiceCreate(BaseModel):
     text: str
@@ -68,9 +69,16 @@ class QuestionRead(BaseModel):
     id: int
     text: str
     order: int
-    created_at: datetime
+    created_at: datetime = Field(default_factory=get_current_datetime)
     assessment_id: int
-    choices: List[ChoiceRead] = []  # Set default empty list
+    choices: List[ChoiceRead] = []
+
+    @field_validator('created_at')
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
     @field_validator('choices')
     @classmethod
@@ -118,9 +126,16 @@ class AssessmentCreate(BaseModel):
 
 class AssessmentRead(AssessmentCreate):
     id: int
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = Field(default_factory=get_current_datetime)
+    updated_at: datetime = Field(default_factory=get_current_datetime)
     questions: List[QuestionRead]
+
+    @field_validator('created_at', 'updated_at')
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
 class QuestionResponseCreate(BaseModel):
     numeric_value: Optional[float] = None
@@ -143,8 +158,15 @@ class QuestionResponseCreate(BaseModel):
 
 class QuestionResponseRead(QuestionResponseCreate):
     id: int
-    created_at: datetime
+    created_at: datetime = Field(default_factory=get_current_datetime)
     assessment_response_id: int
+
+    @field_validator('created_at')
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
 class AssessmentResponseCreate(BaseModel):
     assessment_id: int
@@ -159,10 +181,17 @@ class AssessmentResponseRead(BaseModel):
     id: int
     status: ResponseStatus
     score: Optional[float]
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = Field(default_factory=get_current_datetime)
+    updated_at: datetime = Field(default_factory=get_current_datetime)
     assessment_id: int
     question_responses: List[QuestionResponseRead]
+
+    @field_validator('created_at', 'updated_at')
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
 class BulkQuestionResponseCreate(BaseModel):
     question_responses: List[QuestionResponseCreate]

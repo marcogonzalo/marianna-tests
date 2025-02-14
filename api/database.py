@@ -14,11 +14,13 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
-    echo=True,  # Set to False in production
+    echo=os.getenv("ENV") != "production",
 )
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    yield
+    SQLModel.metadata.drop_all(engine)
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
