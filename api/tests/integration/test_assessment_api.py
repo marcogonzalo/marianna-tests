@@ -126,7 +126,7 @@ async def test_assessment_response_workflow(async_client: AsyncClient, sample_as
     bulk_response = await async_client.put(
         f"/assessments/responses/{response_id}",
         json={
-            "responses": [
+            "question_responses": [  # Changed from "responses" to "question_responses"
                 {
                     "question_id": question_id,
                     "numeric_value": 1.0,

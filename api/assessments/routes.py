@@ -214,10 +214,9 @@ async def create_assessment_response(
 @router.put("/responses/{response_id}", response_model=AssessmentResponseRead)
 async def create_bulk_responses(
     response_id: int,
-    bulk_responses: BulkQuestionResponseCreate,
+    responses: BulkQuestionResponseCreate,
     session: Session = Depends(get_session)
 ):
-    print("HOLAHOLAHOLAHOLAHOLAHOLA")
     assessment_response = session.get(AssessmentResponse, response_id)
     if not assessment_response:
         raise HTTPException(status_code=404, detail="Assessment response not found")
@@ -226,18 +225,20 @@ async def create_bulk_responses(
     question_responses = []
     total_score = 0
     all_numeric = True
-    print("********************", bulk_responses.question_responses)
-    for response_data in bulk_responses.question_responses:
+
+    for response_data in responses.question_responses:
         question = session.get(Question, response_data.question_id)
         if not question:
             raise HTTPException(
                 status_code=404,
                 detail=f"Question {response_data.question_id} not found"
             )
-        print("response_data", response_data.dict())
+
         question_response = QuestionResponse(
             assessment_response_id=response_id,
-            **response_data.dict()
+            question_id=response_data.question_id,
+            numeric_value=response_data.numeric_value,
+            text_value=response_data.text_value
         )
 
         if response_data.numeric_value is not None:
@@ -255,7 +256,6 @@ async def create_bulk_responses(
 
     session.commit()
     session.refresh(assessment_response)
-
 
     # Convert QuestionResponse models to QuestionResponseRead before returning
     question_responses_read = [
