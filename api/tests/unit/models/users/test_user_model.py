@@ -2,7 +2,7 @@ from datetime import datetime
 from users.models import User, Account
 from users.enums import UserRole
 from sqlmodel import Session
-from users.utils import get_password_hash, verify_password
+from utils.password import get_password_hash, verify_password
 
 def test_user_creation(session: Session):
     user = User(

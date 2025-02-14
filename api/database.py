@@ -17,11 +17,15 @@ engine = create_engine(
     echo=os.getenv("ENV") != "production",
 )
 
+
 def create_db_and_tables():
+    print("Creating tables...")
+    tables = SQLModel.metadata.tables
+    print(f"Tables to be created: {', '.join(tables.keys())}")
     SQLModel.metadata.create_all(engine)
-    yield
-    SQLModel.metadata.drop_all(engine)
+    print("Tables created successfully!")
+
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
-        yield session 
+        yield session

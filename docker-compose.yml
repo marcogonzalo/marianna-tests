@@ -1,6 +1,6 @@
 services:
   api:
-    image: mariannatests-api
+    image: marianna-tests-api
     build:
       context: ./api
       target: api-dev

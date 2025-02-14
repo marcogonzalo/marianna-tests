@@ -3,18 +3,22 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from assessments.models import *
+from assessments.models import Assessment, Question, Choice, AssessmentResponse, QuestionResponse
 from assessments.routes import router as assessments_router
-from users.models import *
+from users.models import Account, User
 from users.routes import users_router, accounts_router
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    print("Starting up...")
+    if os.getenv("ENV") not in ["production"]:
+        print("Development mode: Creating database tables...")
+        create_db_and_tables()
     yield
-    # Clean up tasks here
+    print("Shutting down...")
 
 app = FastAPI(
     title="Assessments API",
@@ -37,6 +41,7 @@ app.add_middleware(
 app.include_router(assessments_router)
 app.include_router(users_router)
 app.include_router(accounts_router)
+
 
 @app.get("/health")
 def health_check():
