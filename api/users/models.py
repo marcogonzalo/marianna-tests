@@ -6,8 +6,9 @@ from .enums import UserRole
 from utils.datetime import get_current_datetime
 from sqlalchemy import DateTime
 
+
 class User(SQLModel, table=True):
-    id: UUID4 = Field(default_factory=uuid4, primary_key=True)  # Changed from id to uuid
+    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
     email: EmailStr = Field(unique=True, nullable=False)
     password_hash: str = Field(nullable=False)
     created_at: datetime = Field(
@@ -16,6 +17,10 @@ class User(SQLModel, table=True):
     )
     updated_at: datetime = Field(
         default_factory=get_current_datetime,
+        sa_type=DateTime(timezone=True)
+    )
+    deleted_at: datetime | None = Field(
+        default=None,
         sa_type=DateTime(timezone=True)
     )
 
@@ -33,18 +38,19 @@ class User(SQLModel, table=True):
         if self.updated_at and self.updated_at.tzinfo is None:
             self.updated_at = self.updated_at.replace(tzinfo=timezone.utc)
 
+
 class Account(SQLModel, table=True):
     id: UUID4 = Field(default_factory=uuid4, primary_key=True)
     first_name: str = Field(nullable=False)
     last_name: str = Field(nullable=False)
     role: UserRole = Field(nullable=False)
-    user_id: UUID4 = Field(foreign_key="user.id", unique=True, nullable=False)  # Changed from users.id to user.id
+    user_id: UUID4 = Field(foreign_key="user.id", unique=True, nullable=False)
     created_at: datetime = Field(
-      default_factory=get_current_datetime,
+        default_factory=get_current_datetime,
         sa_type=DateTime(timezone=True)
     )
     updated_at: datetime = Field(default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True)
-    )
+                                 sa_type=DateTime(timezone=True)
+                                 )
 
     user: User = Relationship(back_populates="account")
