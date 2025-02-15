@@ -1,25 +1,32 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from pydantic import UUID4
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from .models import User, Account
-from .schemas import UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
+from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from utils.password import get_password_hash
+
 
 class UserService:
     @staticmethod
     def get_user(db: Session, id: str) -> Optional[UserRead]:
-        db_user = db.query(User).filter(User.id == id).first()
+        db_user = db.query(User).filter(User.id == id, User.deleted_at.is_(None)).options(
+            joinedload(User.account)
+        ).first()
         return UserRead.model_validate(db_user) if db_user else None
 
     @staticmethod
     def get_user_by_email(db: Session, email: str) -> Optional[UserRead]:
-        db_user = db.query(User).filter(User.email == email).first()
+        db_user = db.query(User).filter(User.email == email, User.deleted_at.is_(None)).options(
+            joinedload(User.account)
+        ).first()
         return UserRead.model_validate(db_user) if db_user else None
 
     @staticmethod
     def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[UserRead]:
-        db_users = db.query(User).offset(skip).limit(limit).all()
+        db_users = db.query(User).filter(User.deleted_at.is_(None)).options(
+            joinedload(User.account)
+        ).offset(skip).limit(limit).all()
         return [UserRead.model_validate(user) for user in db_users]
 
     @staticmethod
@@ -34,12 +41,34 @@ class UserService:
         return UserRead.model_validate(db_user)
 
     @staticmethod
+    def create_user_account(db: Session, user: UserAccountCreate) -> UserRead:
+        db_user = User(
+            email=user.email,
+            password_hash=get_password_hash(user.password)
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+        if user.account:
+            user_id_uuid = UUID4(db_user.id) if isinstance(
+                db_user.id, str) else db_user.id
+            db_account = Account(
+                **user.account.model_dump(), user_id=user_id_uuid)
+            db.add(db_account)
+            db.commit()
+            db.refresh(db_account)
+            db_user.account = db_account
+        return UserRead.model_validate(db_user)
+
+    @staticmethod
     def update_user(db: Session, id: str, user: UserUpdate) -> Optional[UserRead]:
         db_user = db.query(User).filter(User.id == id).first()
         if db_user:
             update_data = user.model_dump(exclude_unset=True)
             if "password" in update_data:
-                update_data["password_hash"] = get_password_hash(update_data.pop("password"))
+                update_data["password_hash"] = get_password_hash(
+                    update_data.pop("password"))
             for key, value in update_data.items():
                 setattr(db_user, key, value)
             db_user.updated_at = datetime.utcnow()
@@ -50,12 +79,27 @@ class UserService:
 
     @staticmethod
     def delete_user(db: Session, id: str) -> bool:
-        db_user = db.query(User).filter(User.id == id).first()
+        db_user = db.query(User).filter(
+            User.id == id, User.deleted_at.is_(None)).first()
         if db_user:
-            db.delete(db_user)
+            db_user.deleted_at = datetime.now(timezone.utc)
             db.commit()
             return True
         return False
+
+    @staticmethod
+    def restore_user(db: Session, id: str) -> bool:
+        db_user = db.query(User).filter(
+            User.id == id,
+            User.deleted_at.is_not(None)
+        ).first()
+        if db_user:
+            db_user.deleted_at = None
+            db_user.updated_at = datetime.now(timezone.utc)
+            db.commit()
+            return True
+        return False
+
 
 class AccountService:
     @staticmethod

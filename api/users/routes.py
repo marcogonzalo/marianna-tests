@@ -3,7 +3,7 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_session
-from .schemas import UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
+from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from .services import UserService, AccountService
 
 users_router = APIRouter(prefix="/users", tags=["users"])
@@ -11,11 +11,11 @@ accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
 @users_router.post("/", response_model=UserRead)
-def create_user(user: UserCreate, db: Session = Depends(get_session)):
+def create_user(user: UserAccountCreate, db: Session = Depends(get_session)):
     db_user = UserService.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return UserService.create_user(db=db, user=user)
+    return UserService.create_user_account(db=db, user=user)
 
 
 @users_router.get("/", response_model=List[UserRead])
@@ -46,6 +46,14 @@ def delete_user(id: UUID4, db: Session = Depends(get_session)):
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted"}
+
+
+# @users_router.post("/{id}/restore")
+# def restore_user(id: UUID4, db: Session = Depends(get_session)):
+#     success = UserService.restore_user(db, id=id)
+#     if not success:
+#         raise HTTPException(status_code=404, detail="User not found or not deleted")
+#     return {"detail": "User restored"}
 
 
 @accounts_router.post("/", response_model=AccountRead)

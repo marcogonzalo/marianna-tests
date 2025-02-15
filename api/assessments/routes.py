@@ -214,7 +214,7 @@ async def create_assessment_response(
 @router.put("/responses/{response_id}", response_model=AssessmentResponseRead)
 async def create_bulk_responses(
     response_id: int,
-    responses: BulkQuestionResponseCreate,
+    bulk_response: BulkQuestionResponseCreate,
     session: Session = Depends(get_session)
 ):
     assessment_response = session.get(AssessmentResponse, response_id)
@@ -226,7 +226,7 @@ async def create_bulk_responses(
     total_score = 0
     all_numeric = True
 
-    for response_data in responses.question_responses:
+    for response_data in bulk_response.question_responses:
         question = session.get(Question, response_data.question_id)
         if not question:
             raise HTTPException(
