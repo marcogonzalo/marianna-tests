@@ -4,6 +4,7 @@ import AssessmentsPage from './pages/AssessmentsPage';
 import CreateAssessmentPage from './pages/CreateAssessmentPage';
 import AssessmentResponsesPage from './pages/AssessmentResponsesPage';
 import AssessmentResponsePage from './pages/AssessmentResponsePage';
+import UsersPage from './pages/UsersPage';
 
 const router = createBrowserRouter([
     {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
     {
         path: '/assessments/:id/responses/:responseId',
         element: <AssessmentResponsePage />,
+    },
+    {
+        path: '/users',
+        element: <UsersPage />,
     },
 ]);
 
