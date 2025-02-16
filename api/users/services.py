@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from pydantic import UUID4
 from sqlalchemy.orm import Session, joinedload
-from .models import User, Account
-from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
+from .models import User, Account, Examinee
+from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate, ExamineeCreate, ExamineeRead, ExamineeUpdate
 from utils.password import get_password_hash
 
 
@@ -139,6 +139,59 @@ class AccountService:
         db_account = db.query(Account).filter(Account.id == id).first()
         if db_account:
             db.delete(db_account)
+            db.commit()
+            return True
+        return False
+
+
+class ExamineeService:
+    @staticmethod
+    def get_examinee(db: Session, id: str) -> Optional[ExamineeRead]:
+        db_examinee = db.query(Examinee).filter(
+            Examinee.id == id, Examinee.deleted_at.is_(None)).first()
+        return ExamineeRead.model_validate(db_examinee.model_dump()) if db_examinee else None
+
+    @staticmethod
+    def get_examinees(db: Session, skip: int = 0, limit: int = 100) -> List[ExamineeRead]:
+        db_examinees = db.query(Examinee).filter(
+            Examinee.deleted_at.is_(None)).offset(skip).limit(limit).all()
+        return [ExamineeRead.model_validate(examinee) for examinee in db_examinees]
+
+    @staticmethod
+    def create_examinee(db: Session, examinee: ExamineeCreate) -> ExamineeRead:
+        db_examinee = Examinee(**examinee.model_dump())
+        db.add(db_examinee)
+        db.commit()
+        db.refresh(db_examinee)
+        return ExamineeRead.model_validate(db_examinee.model_dump())
+
+    @staticmethod
+    def update_examinee(db: Session, id: str, examinee: ExamineeUpdate) -> Optional[ExamineeRead]:
+        db_examinee = db.query(Examinee).filter(Examinee.id == id).first()
+        if db_examinee:
+            update_data = examinee.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(db_examinee, key, value)
+            db_examinee.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(db_examinee)
+            return ExamineeRead.model_validate(db_examinee.model_dump())
+        return None
+
+    @staticmethod
+    def soft_delete_examinee(db: Session, id: str) -> bool:
+        db_examinee = db.query(Examinee).filter(Examinee.id == id).first()
+        if db_examinee:
+            db_examinee.deleted_at = datetime.now(timezone.utc)
+            db.commit()
+            return True
+        return False
+
+    @staticmethod
+    def hard_delete_examinee(db: Session, id: str) -> bool:
+        db_examinee = db.query(Examinee).filter(Examinee.id == id).first()
+        if db_examinee:
+            db.delete(db_examinee)
             db.commit()
             return True
         return False

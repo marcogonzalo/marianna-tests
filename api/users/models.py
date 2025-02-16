@@ -1,10 +1,10 @@
+from typing import Optional
 from pydantic import UUID4, EmailStr
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime, timezone
+from sqlmodel import SQLModel, Field, Relationship, DateTime, Text
+from datetime import date, datetime, timezone
 from uuid import uuid4
-from .enums import UserRole
+from .enums import Gender, UserRole
 from utils.datetime import get_current_datetime
-from sqlalchemy import DateTime
 
 
 class User(SQLModel, table=True):
@@ -54,3 +54,37 @@ class Account(SQLModel, table=True):
                                  )
 
     user: User = Relationship(back_populates="account")
+
+
+class Examinee(SQLModel, table=True):
+    # __tablename__ = 'examinees'
+
+    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
+    first_name: str = Field(nullable=False)
+    middle_name: Optional[str] = Field(nullable=True)
+    last_name: str = Field(nullable=False)
+    birth_date: date = Field(nullable=False)
+    gender: Gender = Field(nullable=False)
+    email: EmailStr = Field(unique=True, nullable=False)
+    internal_identifier: Optional[str] = Field(nullable=False)
+    comments: Optional[str] = Field(sa_type=Text, nullable=True)
+    created_by: UUID4 = Field(foreign_key="account.id",
+                              unique=True, nullable=False)
+    created_at: datetime = Field(
+        default_factory=get_current_datetime,
+        sa_type=DateTime(timezone=True)
+    )
+    updated_at: datetime = Field(
+        default_factory=get_current_datetime,
+        sa_type=DateTime(timezone=True)
+    )
+    deleted_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True)
+    )
+
+    # Relationship to Account model
+    creator: Account = Relationship()
+
+    # class Config:
+    #     arbitrary_types_allowed=True

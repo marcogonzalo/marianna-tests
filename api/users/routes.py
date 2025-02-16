@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
+from httpx import request
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_session
 from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from .services import UserService, AccountService
+from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
+from .services import ExamineeService
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
+examinees_router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter()
 
 
 @users_router.post("/", response_model=UserRead)
@@ -89,3 +94,40 @@ def delete_account(id: UUID4, db: Session = Depends(get_session)):
     if not success:
         raise HTTPException(status_code=404, detail="Account not found")
     return {"detail": "Account deleted"}
+
+
+@examinees_router.post("/", response_model=ExamineeRead)
+def create_examinee(examinee: ExamineeCreate, db: Session = Depends(get_session)):
+    return ExamineeService.create_examinee(db, examinee)
+
+
+@examinees_router.get("/{id}", response_model=ExamineeRead)
+def get_examinee(id: UUID4, db: Session = Depends(get_session)):
+    examinee = ExamineeService.get_examinee(db, id)
+    if not examinee:
+        raise HTTPException(status_code=404, detail="Examinee not found")
+    return examinee
+
+
+@examinees_router.get("/", response_model=list[ExamineeRead])
+def get_examinees(skip: int = 0, limit: int = 100, db: Session = Depends(get_session)):
+    return ExamineeService.get_examinees(db, skip, limit)
+
+
+@examinees_router.put("/{id}", response_model=ExamineeRead)
+def update_examinee(id: UUID4, examinee: ExamineeUpdate, db: Session = Depends(get_session)):
+    updated_examinee = ExamineeService.update_examinee(db, id, examinee)
+    if not updated_examinee:
+        raise HTTPException(status_code=404, detail="Examinee not found")
+    return updated_examinee
+
+
+@examinees_router.delete("/{id}", response_model=dict)
+def soft_delete_examinee(id: UUID4, db: Session = Depends(get_session)):
+    if request.query_params.get("hard_delete"):
+        success = ExamineeService.hard_delete_examinee(db, id)
+    else:
+        success = ExamineeService.soft_delete_examinee(db, id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Examinee not found")
+    return {"detail": "Examinee deleted"}
