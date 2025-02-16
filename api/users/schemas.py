@@ -1,7 +1,7 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pydantic import BaseModel, EmailStr, UUID4, Field, field_validator
 from typing import Optional
-from .enums import UserRole
+from .enums import Gender, UserRole
 from utils.datetime import get_current_datetime
 
 
@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
 class UserAccountCreate(BaseModel):
     email: EmailStr
     password: str
-    account: Optional["AccountCreate"]
+    account: Optional["AccountCreate"] = None
 
 
 class UserUpdate(BaseModel):
@@ -76,3 +76,38 @@ class AccountRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ExamineeBase(BaseModel):
+    first_name: str
+    middle_name: Optional[str] = None
+    last_name: str
+    birth_date: date  # Use str for date in Pydantic
+    gender: Gender
+    email: EmailStr
+    internal_identifier: Optional[str]
+    comments: Optional[str]
+
+    @field_validator('first_name', 'last_name')
+    @classmethod
+    def validate_names(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Name fields cannot be empty")
+        return v.strip()
+
+
+class ExamineeCreate(ExamineeBase):
+    created_by: UUID4
+    pass
+
+
+class ExamineeUpdate(ExamineeBase):
+    pass
+
+
+class ExamineeRead(ExamineeBase):
+    id: UUID4
+    created_by: UUID4  # This should link to the Account model
+
+    class Config:
+        orm_mode = True

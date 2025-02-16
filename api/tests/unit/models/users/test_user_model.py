@@ -1,6 +1,7 @@
-from datetime import datetime
-from users.models import User, Account
-from users.enums import UserRole
+from datetime import date, datetime
+from users.schemas import ExamineeCreate, ExamineeUpdate
+from users.models import Examinee, User, Account
+from users.enums import Gender, UserRole
 from sqlmodel import Session
 from utils.password import get_password_hash, verify_password
 
@@ -37,3 +38,78 @@ def test_account_creation(session: Session, sample_user: User):
     assert isinstance(account.created_at, datetime)
 #     assert account.created_at.tzinfo == timezone.utc
 #     assert account.user_id == sample_user.id
+
+def test_examinee_creation(session: Session, sample_account: Account):
+    examinee_data = ExamineeCreate(
+        first_name="John",
+        last_name="Doe",
+        birth_date=date(2000, 1, 1),
+        gender=Gender.MALE,
+        email="john.doe@example.com",
+        internal_identifier="ID123",
+        comments="Test examinee",
+        created_by=sample_account.id
+    )
+    examinee = Examinee(**examinee_data.model_dump())
+    session.add(examinee)
+    session.commit()
+    session.refresh(examinee)
+
+    assert examinee.id is not None
+    assert examinee.first_name == "John"
+    assert examinee.last_name == "Doe"
+
+def test_examinee_update(session: Session, sample_account: Account):
+    examinee_data = ExamineeCreate(
+        first_name="Jane",
+        last_name="Doe",
+        birth_date=date(2000, 1, 1),
+        gender=Gender.FEMALE,
+        email="jane.doe@example.com",
+        internal_identifier="ID124",
+        comments="Test examinee",
+        created_by=sample_account.id
+    )
+    examinee = Examinee(**examinee_data.model_dump())
+    session.add(examinee)
+    session.commit()
+    session.refresh(examinee)
+
+    update_data = ExamineeUpdate(
+        first_name="Janet",
+        last_name="Doe",
+        birth_date=date(2000, 1, 1),
+        gender=Gender.FEMALE,
+        email="jane.doe@example.com",
+        internal_identifier="ID124",
+        comments="Test examinee",
+        created_by=sample_account.id
+    )
+    for key, value in update_data.model_dump(exclude_unset=True).items():
+        setattr(examinee, key, value)
+    session.commit()
+    session.refresh(examinee)
+
+    assert examinee.first_name == "Janet"
+
+def test_examinee_deletion(session: Session, sample_account: Account):
+    examinee_data = ExamineeCreate(
+        first_name="Mark",
+        last_name="Smith",
+        birth_date=date(1998, 5, 15),
+        gender=Gender.MALE,
+        email="mark.smith@example.com",
+        internal_identifier="ID125",
+        comments="Test examinee",
+        created_by=sample_account.id
+    )
+    examinee = Examinee(**examinee_data.model_dump())
+    session.add(examinee)
+    session.commit()
+    session.refresh(examinee)
+
+    session.delete(examinee)
+    session.commit()
+
+    deleted_examinee = session.query(Examinee).filter(Examinee.id == examinee.id).first()
+    assert deleted_examinee is None
