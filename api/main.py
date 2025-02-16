@@ -6,7 +6,7 @@ from database import create_db_and_tables
 from assessments.models import Assessment, Question, Choice, AssessmentResponse, QuestionResponse
 from assessments.routes import router as assessments_router
 from users.models import Account, User
-from users.routes import users_router, accounts_router
+from users.routes import users_router, accounts_router, examinees_router
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 
@@ -41,6 +41,7 @@ app.add_middleware(
 app.include_router(assessments_router)
 app.include_router(users_router)
 app.include_router(accounts_router)
+app.include_router(examinees_router)
 
 
 @app.get("/health")

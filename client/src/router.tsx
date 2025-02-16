@@ -5,6 +5,7 @@ import CreateAssessmentPage from './pages/CreateAssessmentPage';
 import AssessmentResponsesPage from './pages/AssessmentResponsesPage';
 import AssessmentResponsePage from './pages/AssessmentResponsePage';
 import UsersPage from './pages/UsersPage';
+import ExamineesPage from './pages/ExamineesPage';
 
 const router = createBrowserRouter([
     {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
     {
         path: '/users',
         element: <UsersPage />,
+    },
+    {
+        path: '/examinees',
+        element: <ExamineesPage />,
     },
 ]);
 
