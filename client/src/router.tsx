@@ -6,6 +6,7 @@ import AssessmentResponsesPage from './pages/AssessmentResponsesPage';
 import AssessmentResponsePage from './pages/AssessmentResponsePage';
 import UsersPage from './pages/UsersPage';
 import ExamineesPage from './pages/ExamineesPage';
+import ExamineePage from './pages/ExamineePage';
 
 const router = createBrowserRouter([
     {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
     {
         path: '/users',
         element: <UsersPage />,
+    },
+    {
+        path: '/examinees/:id',
+        element: <ExamineePage />,
     },
     {
         path: '/examinees',
