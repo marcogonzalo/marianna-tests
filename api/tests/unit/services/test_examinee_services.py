@@ -6,8 +6,8 @@ from users.schemas import ExamineeCreate, ExamineeUpdate
 from users.services import ExamineeService
 from sqlmodel import Session
 
+
 def test_create_examinee(session: Session, sample_account: Account):
-    print("......................", sample_account)
     examinee_data = ExamineeCreate(
         first_name="Tom",
         last_name="Brown",
@@ -22,6 +22,7 @@ def test_create_examinee(session: Session, sample_account: Account):
     assert examinee.first_name == "Tom"
     assert examinee.email == "tom.brown@example.com"
 
+
 def test_get_examinee(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
         first_name="Sara",
@@ -34,8 +35,10 @@ def test_get_examinee(session: Session, sample_account: Account):
         created_by=sample_account.id
     )
     created_examinee = ExamineeService.create_examinee(session, examinee_data)
-    fetched_examinee = ExamineeService.get_examinee(session, created_examinee.id)
+    fetched_examinee = ExamineeService.get_examinee(
+        session, created_examinee.id)
     assert fetched_examinee.id == created_examinee.id
+
 
 def test_update_examinee(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
@@ -60,8 +63,10 @@ def test_update_examinee(session: Session, sample_account: Account):
         comments="Test examinee",
         created_by=sample_account.id
     )
-    updated_examinee = ExamineeService.update_examinee(session, created_examinee.id, update_data)
+    updated_examinee = ExamineeService.update_examinee(
+        session, created_examinee.id, update_data)
     assert updated_examinee.first_name == "Michael"
+
 
 def test_soft_delete_examinee(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
@@ -75,5 +80,6 @@ def test_soft_delete_examinee(session: Session, sample_account: Account):
         created_by=sample_account.id
     )
     created_examinee = ExamineeService.create_examinee(session, examinee_data)
-    assert ExamineeService.soft_delete_examinee(session, created_examinee.id) is True
+    assert ExamineeService.soft_delete_examinee(
+        session, created_examinee.id) is True
     assert ExamineeService.get_examinee(session, created_examinee.id) is None

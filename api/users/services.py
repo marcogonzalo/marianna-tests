@@ -155,11 +155,15 @@ class ExamineeService:
     def get_examinees(db: Session, skip: int = 0, limit: int = 100) -> List[ExamineeRead]:
         db_examinees = db.query(Examinee).filter(
             Examinee.deleted_at.is_(None)).offset(skip).limit(limit).all()
-        return [ExamineeRead.model_validate(examinee) for examinee in db_examinees]
+        return [ExamineeRead.model_validate(examinee.model_dump()) for examinee in db_examinees]
 
     @staticmethod
     def create_examinee(db: Session, examinee: ExamineeCreate) -> ExamineeRead:
         db_examinee = Examinee(**examinee.model_dump())
+        db_account = db.query(Account).filter(
+            Account.id == examinee.created_by).first()
+        if db_account:
+            db_examinee.created_by = db_account.id
         db.add(db_examinee)
         db.commit()
         db.refresh(db_examinee)

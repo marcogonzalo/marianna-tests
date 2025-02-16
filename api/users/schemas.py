@@ -108,6 +108,8 @@ class ExamineeUpdate(ExamineeBase):
 class ExamineeRead(ExamineeBase):
     id: UUID4
     created_by: UUID4  # This should link to the Account model
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
