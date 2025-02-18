@@ -35,9 +35,9 @@ export default function CreateAssessmentPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        await createAssessment(form);
+        const assessment = await createAssessment(form);
         setIsSubmitting(false);
-        navigate('/assessments');
+        navigate(`/assessments/${assessment.id}`);
     };
 
     const handleScoringMethodChange = (method: ScoringMethod) => {
