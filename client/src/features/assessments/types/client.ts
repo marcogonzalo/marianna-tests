@@ -31,13 +31,18 @@ export interface Choice {
 }
 
 export interface AssessmentResponse {
-    id?: number;
-    assessmentId?: number;
-    status?: 'in_progress' | 'completed' | 'abandoned';
+    id: number;
+    assessmentId: number;
+    examineeId: string;
+    status: 'in_progress' | 'completed' | 'abandoned';
     score?: number;
-    createdAt?: string;
-    updatedAt?: string;
+    createdAt: string;
+    updatedAt: string;
     questionResponses?: QuestionResponse[];
+}
+
+export interface CreateAssessmentResponse {
+    examineeId: string;
 }
 
 export interface QuestionResponse {

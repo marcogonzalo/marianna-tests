@@ -4,12 +4,14 @@ import { getExaminee } from '@/features/examinees/api'; // Assume this function 
 import { Examinee } from '@/features/examinees/types'; // Assume this type is defined in a types file
 import { Page } from '@/layouts/Page';
 import { FormButton } from '@/components/ui';
+import { AssignAssessmentModal } from '@/features/assessments/components/AssignAssessmentModal';
 
 export default function ExamineeDetailPage() {
     const { id } = useParams<{ id: string }>();
     const [examinee, setExaminee] = useState<Examinee | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchExaminee = async () => {
@@ -28,6 +30,14 @@ export default function ExamineeDetailPage() {
 
         fetchExaminee();
     }, [id]);
+
+    const handleOpenModal = () => {
+        setIsAssignModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsAssignModalOpen(false);
+    };
 
     if (loading) {
         return (
@@ -63,7 +73,7 @@ export default function ExamineeDetailPage() {
                         <h2 className="text-2xl font-semibold mb-4">
                             Examinee Details
                         </h2>
-                        <div className='grid grid-cols-2'>
+                        <div className="grid grid-cols-2">
                             <div className="">
                                 <div>
                                     <strong>Name:</strong> {examinee.firstName}{' '}
@@ -99,15 +109,20 @@ export default function ExamineeDetailPage() {
                         </div>
                         <div className="mt-6">
                             <FormButton
-                                variant="secondary"
-                                onClick={() => window.history.back()}
+                                variant="primary"
+                                onClick={handleOpenModal}
                             >
-                                Back
+                                Assign Assessment
                             </FormButton>
                         </div>
                     </div>
                 </div>
             </div>
+            <AssignAssessmentModal
+                isOpen={isAssignModalOpen}
+                onClose={handleCloseModal}
+                examineeId={examinee.id}
+            />
         </Page>
     );
 }
