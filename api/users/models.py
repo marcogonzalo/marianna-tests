@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import UUID4, EmailStr
 from sqlmodel import SQLModel, Field, Relationship, DateTime, Text
 from datetime import date, datetime, timezone
@@ -54,6 +54,7 @@ class Account(SQLModel, table=True):
                                  )
 
     user: User = Relationship(back_populates="account")
+    examinees: List["Examinee"] = Relationship(back_populates="creator")
 
 
 class Examinee(SQLModel, table=True):
@@ -85,6 +86,8 @@ class Examinee(SQLModel, table=True):
 
     # Relationship to Account model
     creator: Account = Relationship()
+    assessment_responses: List["AssessmentResponse"] = Relationship(
+        back_populates="examinee")
 
     # class Config:
     #     arbitrary_types_allowed=True

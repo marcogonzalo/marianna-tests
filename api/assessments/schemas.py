@@ -1,8 +1,9 @@
 from typing import Optional, List
-from pydantic import BaseModel, field_validator, Field
+from pydantic import UUID4, BaseModel, field_validator, Field
 from datetime import datetime, timezone
-from .models import ScoringMethod, ResponseStatus
+from .models import ScoringMethod
 from utils.datetime import get_current_datetime
+
 
 class ChoiceCreate(BaseModel):
     text: str
@@ -36,8 +37,10 @@ class ChoiceRead(BaseModel):  # Change parent to BaseModel
     value: float
     order: int
 
+
 class ChoiceUpdate(ChoiceCreate):
     id: Optional[int] = None
+
 
 class QuestionCreate(BaseModel):
     text: str
@@ -65,6 +68,7 @@ class QuestionCreate(BaseModel):
             raise ValueError("Order must be an integer")
         return v
 
+
 class QuestionRead(BaseModel):
     id: int
     text: str
@@ -86,8 +90,10 @@ class QuestionRead(BaseModel):
         # Only validate non-empty for creation, not reading
         return v
 
+
 class QuestionUpdate(QuestionCreate):
     choices: List[ChoiceUpdate]
+
 
 class AssessmentCreate(BaseModel):
     title: str
@@ -101,7 +107,8 @@ class AssessmentCreate(BaseModel):
     @classmethod
     def validate_values(cls, v, info):
         if v is None and info.data.get('scoring_method') == ScoringMethod.CUSTOM:
-            raise ValueError("Custom scoring method requires min_value and max_value")
+            raise ValueError(
+                "Custom scoring method requires min_value and max_value")
         if v is not None and v < 0:
             raise ValueError("Values cannot be negative")
         return v
@@ -121,8 +128,10 @@ class AssessmentCreate(BaseModel):
         values = info.data
         if v == ScoringMethod.CUSTOM:
             if values.get('min_value') is None or values.get('max_value') is None:
-                raise ValueError("Custom scoring method requires explicit min_value and max_value")
+                raise ValueError(
+                    "Custom scoring method requires explicit min_value and max_value")
         return v
+
 
 class AssessmentRead(AssessmentCreate):
     id: int
@@ -136,6 +145,7 @@ class AssessmentRead(AssessmentCreate):
         if v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
         return v
+
 
 class QuestionResponseCreate(BaseModel):
     numeric_value: Optional[float] = None
@@ -153,8 +163,10 @@ class QuestionResponseCreate(BaseModel):
 
         # If both the current value and the other value are None, raise error
         if v is None and other_value is None:
-            raise ValueError("Either numeric_value or text_value must be provided")
+            raise ValueError(
+                "Either numeric_value or text_value must be provided")
         return v
+
 
 class QuestionResponseRead(QuestionResponseCreate):
     id: int
@@ -168,37 +180,6 @@ class QuestionResponseRead(QuestionResponseCreate):
             return v.replace(tzinfo=timezone.utc)
         return v
 
-class AssessmentResponseCreate(BaseModel):
-    assessment_id: int
-    status: ResponseStatus
-    question_responses: List[QuestionResponseCreate]
 
-class AssessmentResponseUpdate(BaseModel):
-    status: ResponseStatus
-    score: Optional[float] = None
-
-class AssessmentResponseRead(BaseModel):
-    id: int
-    status: ResponseStatus
-    score: Optional[float]
-    created_at: datetime = Field(default_factory=get_current_datetime)
-    updated_at: datetime = Field(default_factory=get_current_datetime)
-    assessment_id: int
-    question_responses: List[QuestionResponseRead]
-
-    @field_validator('created_at', 'updated_at')
-    @classmethod
-    def ensure_timezone(cls, v: datetime) -> datetime:
-        if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v
-
-class BulkQuestionResponseCreate(BaseModel):
-    question_responses: List[QuestionResponseCreate]
-
-    @field_validator('question_responses')
-    @classmethod
-    def validate_responses(cls, v):
-        if not v:
-            raise ValueError("At least one response is required")
-        return v
+class AssessmentResponseCreateParams(BaseModel):
+    examinee_id: UUID4

@@ -1,9 +1,10 @@
 from typing import Optional, List
-from sqlmodel import SQLModel, Field, Relationship, Session, select
+from pydantic import UUID4
+from sqlmodel import SQLModel, Field, Relationship, Session, select, Text, DateTime
 from datetime import datetime, timezone
 from enum import Enum
-from sqlalchemy import Text, DateTime
 from utils.datetime import get_current_datetime
+
 
 class ScoringMethod(str, Enum):
     BOOLEAN = "boolean"  # Simple true/false, adds 1 or 0
@@ -12,6 +13,7 @@ class ScoringMethod(str, Enum):
 
     def serialize(self):
         return self.value
+
 
 class Assessment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -22,11 +24,11 @@ class Assessment(SQLModel, table=True):
     scoring_method: ScoringMethod
     created_at: datetime = Field(
         default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
+        sa_type=DateTime(timezone=True)
     )
     updated_at: datetime = Field(
         default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
+        sa_type=DateTime(timezone=True)
     )
 
     def __init__(self, **data):
@@ -49,11 +51,14 @@ class Assessment(SQLModel, table=True):
             self.min_value = -1
             self.max_value = 1
         elif self.scoring_method == ScoringMethod.CUSTOM:
-            raise ValueError("Custom scoring method requires explicit min_value and max_value")
+            raise ValueError(
+                "Custom scoring method requires explicit min_value and max_value")
 
     # Relationships
     questions: List["Question"] = Relationship(back_populates="assessment")
-    responses: List["AssessmentResponse"] = Relationship(back_populates="assessment")
+    responses: List["AssessmentResponse"] = Relationship(
+        back_populates="assessment")
+
 
 class Question(SQLModel, table=True):
     """Question model represents a question in an assessment.
@@ -91,7 +96,7 @@ class Question(SQLModel, table=True):
     order: int
     created_at: datetime = Field(
         default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
+        sa_type=DateTime(timezone=True)
     )
 
     # Foreign keys
@@ -127,7 +132,8 @@ class Question(SQLModel, table=True):
         updated_choice_ids = set()
         for choice_data in choices:
             # Handle both SQLModel Choice instances and ChoiceCreate schema instances
-            choice_dict = choice_data.dict() if hasattr(choice_data, 'dict') else vars(choice_data)
+            choice_dict = choice_data.dict() if hasattr(
+                choice_data, 'dict') else vars(choice_data)
             choice_id = getattr(choice_data, 'id', None)
 
             if choice_id:
@@ -173,6 +179,7 @@ class Question(SQLModel, table=True):
         if self.created_at and self.created_at.tzinfo is None:
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
 
+
 class Choice(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
@@ -180,7 +187,8 @@ class Choice(SQLModel, table=True):
     order: int
     created_at: datetime = Field(
         default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True)   # Store as string to preserve timezone info
+        # Store as string to preserve timezone info
+        sa_type=DateTime(timezone=True)
     )
 
     # Foreign keys
@@ -192,70 +200,6 @@ class Choice(SQLModel, table=True):
     def __init__(self, **data):
         """
         Initialize Choice with timezone-aware datetime fields.
-        Ensures created_at field has UTC timezone info when instances are created.
-        """
-        super().__init__(**data)
-        if self.created_at and self.created_at.tzinfo is None:
-            self.created_at = self.created_at.replace(tzinfo=timezone.utc)
-
-class ResponseStatus(str, Enum):
-    PENDING = "pending"
-    COMPLETED = "completed"
-    ABANDONED = "abandoned"
-
-class AssessmentResponse(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    status: ResponseStatus = Field(default=ResponseStatus.PENDING)
-    score: Optional[float] = None
-    created_at: datetime = Field(
-        default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
-    )
-    updated_at: datetime = Field(
-        default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
-    )
-
-    # Foreign keys
-    assessment_id: int = Field(foreign_key="assessment.id")
-
-    # Relationships
-    assessment: Assessment = Relationship(back_populates="responses")
-    question_responses: List["QuestionResponse"] = Relationship(back_populates="assessment_response")
-
-    def __init__(self, **data):
-        """
-        Initialize AssessmentResponse with timezone-aware datetime fields.
-        Ensures created_at and updated_at fields have UTC timezone info
-        when instances are created.
-        """
-        super().__init__(**data)
-        if self.created_at and self.created_at.tzinfo is None:
-            self.created_at = self.created_at.replace(tzinfo=timezone.utc)
-        if self.updated_at and self.updated_at.tzinfo is None:
-            self.updated_at = self.updated_at.replace(tzinfo=timezone.utc)
-
-class QuestionResponse(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    numeric_value: Optional[float] = None
-    text_value: Optional[str] = Field(default=None, sa_type=Text)
-    created_at: datetime = Field(
-        default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True) 
-    )
-
-    # Foreign keys
-    question_id: int = Field(foreign_key="question.id")
-    selected_choice_id: Optional[int] = Field(foreign_key="choice.id", default=None)
-    assessment_response_id: int = Field(foreign_key="assessmentresponse.id")
-
-    # Relationships
-    assessment_response: AssessmentResponse = Relationship(back_populates="question_responses")
-    selected_choice: Optional[Choice] = Relationship()
-
-    def __init__(self, **data):
-        """
-        Initialize QuestionResponse with timezone-aware datetime fields.
         Ensures created_at field has UTC timezone info when instances are created.
         """
         super().__init__(**data)

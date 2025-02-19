@@ -1,21 +1,22 @@
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import UUID4
 from sqlmodel import Session, select
 from typing import List
-from .models import Assessment, Question, AssessmentResponse, QuestionResponse, ResponseStatus, ScoringMethod
+from database import get_session
+from responses.schemas import AssessmentResponseRead, AssessmentResponseRead
+from .models import Assessment, Question, ScoringMethod
 from .schemas import (
-    AssessmentCreate, AssessmentRead, AssessmentResponseUpdate,
-    QuestionCreate, QuestionRead, QuestionResponseRead,
+    AssessmentCreate, AssessmentRead, AssessmentResponseCreateParams,
+    QuestionCreate, QuestionRead,
     QuestionUpdate,
-    AssessmentResponseCreate, AssessmentResponseRead,
-    BulkQuestionResponseCreate
 )
 
-router = APIRouter(prefix="/assessments", tags=["assessments"])
+assessments_router = APIRouter(prefix="/assessments", tags=["assessments"])
 
-from database import get_session
 
 # Assessment endpoints
-@router.post("/", response_model=AssessmentRead)
+
+@assessments_router.post("/", response_model=AssessmentRead)
 async def create_assessment(assessment: AssessmentCreate, session: Session = Depends(get_session)):
     # Validate custom scoring requirements
     if assessment.scoring_method == ScoringMethod.CUSTOM:
@@ -35,19 +36,22 @@ async def create_assessment(assessment: AssessmentCreate, session: Session = Dep
     session.refresh(db_assessment)
     return db_assessment
 
-@router.get("/", response_model=List[AssessmentRead])
+
+@assessments_router.get("/", response_model=List[AssessmentRead])
 async def list_assessments(session: Session = Depends(get_session)):
     assessments = session.exec(select(Assessment)).all()
     return assessments
 
-@router.get("/{assessment_id}", response_model=AssessmentRead)
+
+@assessments_router.get("/{assessment_id}", response_model=AssessmentRead)
 async def get_assessment(assessment_id: int, session: Session = Depends(get_session)):
     assessment = session.get(Assessment, assessment_id)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
     return assessment
 
-@router.put("/{assessment_id}", response_model=AssessmentRead)
+
+@assessments_router.put("/{assessment_id}", response_model=AssessmentRead)
 async def update_assessment(
     assessment_id: int,
     assessment_update: AssessmentCreate,
@@ -66,7 +70,8 @@ async def update_assessment(
     session.refresh(db_assessment)
     return db_assessment
 
-@router.delete("/{assessment_id}")
+
+@assessments_router.delete("/{assessment_id}")
 async def delete_assessment(assessment_id: int, session: Session = Depends(get_session)):
     assessment = session.get(Assessment, assessment_id)
     if not assessment:
@@ -77,7 +82,9 @@ async def delete_assessment(assessment_id: int, session: Session = Depends(get_s
     return {"message": "Assessment deleted"}
 
 # Question endpoints
-@router.post("/{assessment_id}/questions", response_model=QuestionRead)
+
+
+@assessments_router.post("/{assessment_id}/questions", response_model=QuestionRead)
 async def create_question(
     assessment_id: int,
     question: QuestionCreate,
@@ -102,14 +109,16 @@ async def create_question(
     session.refresh(db_question)
     return db_question
 
-@router.get("/{assessment_id}/questions", response_model=List[QuestionRead])
+
+@assessments_router.get("/{assessment_id}/questions", response_model=List[QuestionRead])
 async def list_questions(assessment_id: int, session: Session = Depends(get_session)):
     questions = session.exec(
         select(Question).where(Question.assessment_id == assessment_id)
     ).all()
     return questions
 
-@router.get("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
+
+@assessments_router.get("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
 async def get_question(
     assessment_id: int,
     question_id: int,
@@ -124,7 +133,8 @@ async def get_question(
         raise HTTPException(status_code=404, detail="Question not found")
     return question
 
-@router.put("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
+
+@assessments_router.put("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
 async def update_question(
     assessment_id: int,
     question_id: int,
@@ -149,7 +159,8 @@ async def update_question(
     session.refresh(question)
     return question
 
-@router.delete("/{assessment_id}/questions/{question_id}")
+
+@assessments_router.delete("/{assessment_id}/questions/{question_id}")
 async def delete_question(
     assessment_id: int,
     question_id: int,
@@ -168,30 +179,41 @@ async def delete_question(
     return {"message": "Question deleted"}
 
 # Assessment Response endpoints
-@router.get("/{assessment_id}/responses", response_model=List[AssessmentResponseRead])
+
+
+@assessments_router.get("/{assessment_id}/responses", response_model=List["AssessmentResponseRead"])
 async def list_assessment_responses(
     assessment_id: int,
     session: Session = Depends(get_session)
 ):
     responses = session.exec(
-        select(AssessmentResponse)
-        .where(AssessmentResponse.assessment_id == assessment_id)
+        select("AssessmentResponse")
+        .where("AssessmentResponse".assessment_id == assessment_id)
     ).all()
     return responses
 
-@router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
+
+@assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
 async def create_assessment_response(
     assessment_id: int,
+    assessment_response_params: AssessmentResponseCreateParams,
     session: Session = Depends(get_session)
 ):
+    from users.models import Examinee
+    from responses.models import AssessmentResponse, ResponseStatus
+
     # Verify assessment exists
     assessment = session.get(Assessment, assessment_id)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
+    examinee = session.get(Examinee, assessment_response_params.examinee_id)
+    if not examinee:
+        raise HTTPException(status_code=404, detail="Examinee not found")
     # Create new assessment response
     assessment_response = AssessmentResponse(
-        assessment_id=assessment_id,
+        assessment_id=assessment.id,
+        examinee_id=examinee.id,
         status=ResponseStatus.PENDING,
         score=None  # Initialize score as None
     )
@@ -203,105 +225,10 @@ async def create_assessment_response(
     return AssessmentResponseRead(
         id=assessment_response.id,
         assessment_id=assessment_response.assessment_id,
+        examinee_id=assessment_response.examinee_id,
         status=assessment_response.status,
         score=assessment_response.score,
         question_responses=[],  # Initialize with empty list
-        created_at=assessment_response.created_at,
-        updated_at=assessment_response.updated_at
-    )
-
-# Assessment Response endpoints
-@router.put("/responses/{response_id}", response_model=AssessmentResponseRead)
-async def create_bulk_responses(
-    response_id: int,
-    bulk_response: BulkQuestionResponseCreate,
-    session: Session = Depends(get_session)
-):
-    assessment_response = session.get(AssessmentResponse, response_id)
-    if not assessment_response:
-        raise HTTPException(status_code=404, detail="Assessment response not found")
-
-    # Create all question responses
-    question_responses = []
-    total_score = 0
-    all_numeric = True
-
-    for response_data in bulk_response.question_responses:
-        question = session.get(Question, response_data.question_id)
-        if not question:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Question {response_data.question_id} not found"
-            )
-
-        question_response = QuestionResponse(
-            assessment_response_id=response_id,
-            question_id=response_data.question_id,
-            numeric_value=response_data.numeric_value,
-            text_value=response_data.text_value
-        )
-
-        if response_data.numeric_value is not None:
-            total_score += response_data.numeric_value
-        else:
-            all_numeric = False
-
-        session.add(question_response)
-        question_responses.append(question_response)
-
-    # Update assessment response status and score if all responses are numeric
-    if all_numeric:
-        assessment_response.score = total_score
-        assessment_response.status = ResponseStatus.COMPLETED
-
-    session.commit()
-    session.refresh(assessment_response)
-
-    # Convert QuestionResponse models to QuestionResponseRead before returning
-    question_responses_read = [
-        QuestionResponseRead(
-            id=qr.id,
-            question_id=qr.question_id,
-            assessment_response_id=qr.assessment_response_id,
-            numeric_value=qr.numeric_value,
-            text_value=qr.text_value,
-            created_at=qr.created_at
-        ) for qr in assessment_response.question_responses
-    ]
-
-    return AssessmentResponseRead(
-        id=assessment_response.id,
-        assessment_id=assessment_response.assessment_id,
-        status=assessment_response.status,
-        score=assessment_response.score,
-        question_responses=question_responses_read,
-        created_at=assessment_response.created_at,
-        updated_at=assessment_response.updated_at
-    )
-
-@router.get("/responses/{response_id}", response_model=AssessmentResponseRead)
-async def get_bulk_responses(
-    response_id: int,
-    session: Session = Depends(get_session)
-):
-    # Get the assessment response with relationships
-    assessment_response = session.get(AssessmentResponse, response_id)
-    if not assessment_response:
-        raise HTTPException(status_code=404, detail="Assessment response not found")
-
-    # Get all question responses for this assessment response
-    question_responses = session.exec(
-        select(QuestionResponse)
-        .where(QuestionResponse.assessment_response_id == response_id)
-    ).all()
-
-    # Return complete assessment response data
-    return AssessmentResponseRead(
-        id=assessment_response.id,
-        assessment_id=assessment_response.assessment_id,
-        status=assessment_response.status,
-        score=assessment_response.score,
-        question_responses=question_responses,
         created_at=assessment_response.created_at,
         updated_at=assessment_response.updated_at
     )

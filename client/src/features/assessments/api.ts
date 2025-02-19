@@ -4,6 +4,7 @@ import {
     AssessmentAPI,
     AssessmentResponse,
     AssessmentResponseAPI,
+    CreateAssessmentResponse,
     Question,
     QuestionAPI,
 } from '@/features/assessments/types/';
@@ -83,14 +84,18 @@ export async function getAssessmentResponse(
 
 export async function createAssessmentResponse(
     assessmentId: number,
+    data: CreateAssessmentResponse,
 ): Promise<AssessmentResponse> {
-    const data = await fetchApi<AssessmentResponse>(
+
+    const transformedData = transformKeys(data, toSnakeCase) as AssessmentResponseAPI;
+    const response = await fetchApi<AssessmentResponse>(
         `/assessments/${assessmentId}/responses`,
         {
             method: 'POST',
+            body: JSON.stringify(transformedData),
         },
     );
-    return transformKeys(data, toCamelCase) as AssessmentResponse;
+    return transformKeys(response, toCamelCase) as AssessmentResponse;
 }
 
 export async function updateAssessmentResponse(

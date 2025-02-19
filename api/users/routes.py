@@ -12,7 +12,6 @@ from .services import ExamineeService
 users_router = APIRouter(prefix="/users", tags=["users"])
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
 examinees_router = APIRouter(prefix="/examinees", tags=["examinees"])
-router = APIRouter()
 
 
 @users_router.post("/", response_model=UserRead)

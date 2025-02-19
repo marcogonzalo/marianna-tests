@@ -34,6 +34,7 @@ export interface AssessmentResponseAPI {
     id?: number;
     assessment_id: number;
     status: 'in_progress' | 'completed' | 'abandoned';
+    examinee_id?: string;
     score?: number;
     created_at: string;
     updated_at?: string;
