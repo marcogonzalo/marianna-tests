@@ -1,3 +1,4 @@
+import hashlib
 from typing import Optional, List
 from pydantic import UUID4
 from sqlmodel import SQLModel, Field, Relationship, Text, DateTime
@@ -12,10 +13,18 @@ class ResponseStatus(str, Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
+    DISCARDED = "discarded"
+
+
+def _generate_assessment_response_id(examinee_id: UUID4, assessment_id: int) -> str:
+    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    to_hash = f"{examinee_id}{assessment_id}{current_date}"
+    response_id = hashlib.sha256(to_hash.encode()).hexdigest()
+    return response_id
 
 
 class AssessmentResponse(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: str = Field(default=None, primary_key=True)
     status: ResponseStatus = Field(default=ResponseStatus.PENDING)
     score: Optional[float] = None
     created_at: datetime = Field(
@@ -44,6 +53,9 @@ class AssessmentResponse(SQLModel, table=True):
         when instances are created.
         """
         super().__init__(**data)
+        if self.id is None:
+            self.id = _generate_assessment_response_id(
+                self.examinee_id, self.assessment_id)
         if self.created_at and self.created_at.tzinfo is None:
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
         if self.updated_at and self.updated_at.tzinfo is None:
@@ -63,7 +75,7 @@ class QuestionResponse(SQLModel, table=True):
     question_id: int = Field(foreign_key="question.id")
     selected_choice_id: Optional[int] = Field(
         foreign_key="choice.id", default=None)
-    assessment_response_id: int = Field(foreign_key="assessmentresponse.id")
+    assessment_response_id: str = Field(foreign_key="assessmentresponse.id")
 
     # Relationships
     assessment_response: AssessmentResponse = Relationship(

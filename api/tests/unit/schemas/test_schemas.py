@@ -2,10 +2,10 @@ import pytest
 from assessments.schemas import (
     AssessmentCreate,
     QuestionCreate,
-    ChoiceCreate,
-    AssessmentResponseCreate
+    ChoiceCreate
 )
-from assessments.models import ScoringMethod, ResponseStatus
+from assessments.models import ScoringMethod
+
 
 def test_assessment_create_validation():
     # Valid assessment with boolean scoring
@@ -35,6 +35,7 @@ def test_assessment_create_validation():
     assert assessment.min_value == 0.0
     assert assessment.max_value == 10.0
 
+
 def test_choice_create_validation():
     # Valid choice
     choice = ChoiceCreate(
@@ -52,6 +53,7 @@ def test_choice_create_validation():
             value=1.0,
             order=1
         )
+
 
 def test_question_create_validation():
     # Valid question with choices

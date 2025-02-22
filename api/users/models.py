@@ -67,7 +67,7 @@ class Examinee(SQLModel, table=True):
     birth_date: date = Field(nullable=False)
     gender: Gender = Field(nullable=False)
     email: EmailStr = Field(unique=True, nullable=False)
-    internal_identifier: Optional[str] = Field(nullable=False)
+    internal_identifier: Optional[str] = Field(nullable=True)
     comments: Optional[str] = Field(sa_type=Text, nullable=True)
     created_by: UUID4 = Field(foreign_key="account.id",
                               unique=True, nullable=False)
