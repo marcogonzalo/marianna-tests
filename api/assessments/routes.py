@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import UUID4
 from sqlmodel import Session, select
 from typing import List
 from database import get_session
-from responses.schemas import AssessmentResponseRead, AssessmentResponseRead
+from responses.schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseCreateParams
 from .models import Assessment, Question, ScoringMethod
 from .schemas import (
-    AssessmentCreate, AssessmentRead, AssessmentResponseCreateParams,
+    AssessmentCreate, AssessmentRead,
     QuestionCreate, QuestionRead,
     QuestionUpdate,
 )
@@ -200,7 +199,7 @@ async def create_assessment_response(
     session: Session = Depends(get_session)
 ):
     from users.models import Examinee
-    from responses.models import AssessmentResponse, ResponseStatus
+    from responses.services import AssessmentResponseService
 
     # Verify assessment exists
     assessment = session.get(Assessment, assessment_id)
@@ -210,13 +209,10 @@ async def create_assessment_response(
     examinee = session.get(Examinee, assessment_response_params.examinee_id)
     if not examinee:
         raise HTTPException(status_code=404, detail="Examinee not found")
+
     # Create new assessment response
-    assessment_response = AssessmentResponse(
-        assessment_id=assessment.id,
-        examinee_id=examinee.id,
-        status=ResponseStatus.PENDING,
-        score=None  # Initialize score as None
-    )
+    assessment_response = AssessmentResponseService.create_assessment_response(
+        session, AssessmentResponseCreate(**assessment_response_params.model_dump(), assessment_id=assessment_id))
 
     session.add(assessment_response)
     session.commit()

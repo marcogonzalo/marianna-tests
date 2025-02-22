@@ -1,3 +1,7 @@
+
+from database import get_session
+from main import app
+from datetime import date
 import pytest
 from typing import AsyncGenerator, Generator
 from fastapi.testclient import TestClient
@@ -7,20 +11,22 @@ from sqlmodel.pool import StaticPool
 import sys
 from pathlib import Path
 
+from utils.datetime import get_current_datetime
 from utils.password import get_password_hash
 from assessments.models import Assessment, Choice, Question, ScoringMethod
-from users.models import User, Account
+from responses.models import AssessmentResponse, QuestionResponse
+from users.enums import Gender
+from users.models import Examinee, User, Account
 
 # Add the api directory to the Python path
 api_path = str(Path(__file__).parent.parent)
 if api_path not in sys.path:
     sys.path.append(api_path)
 
-from main import app
-from database import get_session
 
 # Use in-memory SQLite for testing
 TEST_DATABASE_URL = "sqlite:///:memory:"
+
 
 @pytest.fixture(name="engine", scope="function")
 def engine_fixture():
@@ -34,6 +40,7 @@ def engine_fixture():
     SQLModel.metadata.create_all(engine)
     yield engine
     SQLModel.metadata.drop_all(engine)
+
 
 @pytest.fixture(name="session")
 def session_fixture(engine):
@@ -49,6 +56,7 @@ def session_fixture(engine):
         # Clear any uncommitted changes
         session.rollback()
 
+
 @pytest.fixture(name="client")
 def client_fixture(session: Session):
     """Create a new FastAPI TestClient with session override."""
@@ -60,6 +68,7 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
 
 @pytest.fixture(name="async_client")
 async def async_client_fixture(session: Session) -> AsyncGenerator:
@@ -77,6 +86,8 @@ async def async_client_fixture(session: Session) -> AsyncGenerator:
     app.dependency_overrides.clear()
 
 # Test data fixtures
+
+
 @pytest.fixture
 def sample_assessment(session: Session):
     assessment = Assessment(
@@ -91,6 +102,7 @@ def sample_assessment(session: Session):
     session.refresh(assessment)
     return assessment
 
+
 @pytest.fixture(name="sample_question")
 def sample_question_fixture(session: Session, sample_assessment: Assessment) -> Question:
     question = Question(
@@ -102,6 +114,7 @@ def sample_question_fixture(session: Session, sample_assessment: Assessment) -> 
     session.commit()
     session.refresh(question)
     return question
+
 
 @pytest.fixture(name="sample_choice")
 def sample_choice_fixture(session: Session, sample_question: Question) -> Choice:
@@ -116,6 +129,7 @@ def sample_choice_fixture(session: Session, sample_question: Question) -> Choice
     session.refresh(choice)
     return choice
 
+
 @pytest.fixture
 def sample_user(session: Session) -> User:
     user = User(
@@ -126,6 +140,7 @@ def sample_user(session: Session) -> User:
     session.commit()
     session.refresh(user)
     return user
+
 
 @pytest.fixture
 def sample_account(session: Session, sample_user: User) -> Account:
@@ -142,3 +157,50 @@ def sample_account(session: Session, sample_user: User) -> Account:
     session.commit()
     session.refresh(account)
     return account
+
+
+@pytest.fixture
+def sample_examinee(session: Session, sample_account: Account) -> Examinee:
+    user = Examinee(
+        first_name="Marianna",
+        last_name="Rolo",
+        email="test@example.com",
+        birth_date=date(2000, 1, 1),
+        gender=Gender.FEMALE,
+        created_by=sample_account.id
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def sample_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee):
+    # Create a sample AssessmentResponse
+    assessment_response = AssessmentResponse(
+        assessment_id=sample_assessment.id,
+        examinee_id=sample_examinee.id,
+        status="pending",
+        created_at=get_current_datetime(),
+        updated_at=get_current_datetime()
+    )
+    session.add(assessment_response)
+    session.commit()
+    session.refresh(assessment_response)
+    return assessment_response
+
+@pytest.fixture
+def sample_question_response(session: Session, sample_assessment_response: AssessmentResponse):
+    # Create a sample QuestionResponse
+    question_response = QuestionResponse(
+        assessment_response_id=sample_assessment_response.id,
+        question_id=1,  # Assuming a question with ID 1 exists
+        numeric_value=5.0,
+        text_value="Sample answer",
+        created_at=get_current_datetime()
+    )
+    session.add(question_response)
+    session.commit()
+    session.refresh(question_response)
+    return question_response
