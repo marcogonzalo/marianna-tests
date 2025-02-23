@@ -1,13 +1,15 @@
 import pytest
+from assessments.schemas import AssessmentRead
+from assessments.models import Assessment
 from responses.schemas import (
     AssessmentResponseCreate,
+    AssessmentResponseReadWithQuestions,
     AssessmentResponseUpdate,
-    AssessmentResponseRead,
     BulkQuestionResponseCreate,
     QuestionResponseCreate,
     QuestionResponseRead
 )
-from responses.models import AssessmentResponse, ResponseStatus
+from responses.models import ResponseStatus
 from pydantic import ValidationError
 from uuid import uuid4
 
@@ -49,19 +51,21 @@ def test_assessment_response_update_validation():
         )
 
 
-def test_assessment_response_read_validation():
+def test_assessment_response_read_with__validation(sample_assessment: Assessment):
     # Valid read
-    response = AssessmentResponseRead(
+    response = AssessmentResponseReadWithQuestions(
         id="some_id",
         status=ResponseStatus.PENDING,
         score=None,
-        assessment_id=1,
+        assessment_id=sample_assessment.id,
+        assessment=AssessmentRead.model_validate(sample_assessment),
         question_responses=[],
         examinee_id=uuid4()
     )
     assert response.id == "some_id"
     assert response.status == ResponseStatus.PENDING
     assert response.assessment_id == 1
+    assert response.assessment.id == sample_assessment.id
     assert len(response.question_responses) == 0
 
 
@@ -69,7 +73,8 @@ def test_bulk_question_response_create_validation():
     # Valid bulk question response
     bulk_response = BulkQuestionResponseCreate(
         question_responses=[
-            QuestionResponseCreate(numeric_value=5.0, text_value=None, question_id=1),
+            QuestionResponseCreate(
+                numeric_value=5.0, text_value=None, question_id=1),
             QuestionResponseCreate(text_value="Sample answer", question_id=2)
         ]
     )
@@ -103,7 +108,7 @@ def test_question_response_create_validation():
 
 def test_question_response_read_validation():
     # Valid question response read
-    assessment_response_id=str(uuid4())
+    assessment_response_id = str(uuid4())
     question_response_read = QuestionResponseRead(
         id=1,
         numeric_value=5.0,

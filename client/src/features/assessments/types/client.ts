@@ -1,4 +1,4 @@
-import { ScoringMethod } from './shared';
+import { ResponseStatus, ScoringMethod } from './shared';
 
 export interface Assessment {
     id?: number;
@@ -31,10 +31,11 @@ export interface Choice {
 }
 
 export interface AssessmentResponse {
-    id: number;
+    id: string;
     assessmentId: number;
+    assessment?: Assessment;
     examineeId: string;
-    status: 'in_progress' | 'completed' | 'abandoned';
+    status: ResponseStatus;
     score?: number;
     createdAt: string;
     updatedAt: string;
@@ -47,8 +48,9 @@ export interface CreateAssessmentResponse {
 
 export interface QuestionResponse {
     id?: number;
-    assessmentResponseId: number;
+    assessmentResponseId: string;
     questionId: number;
-    numericValue: number;
+    numericValue?: number;
+    textValue?: string;
     createdAt?: string;
 }

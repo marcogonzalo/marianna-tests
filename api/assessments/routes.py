@@ -2,7 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from typing import List
 from database import get_session
-from responses.schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseCreateParams
+from responses.schemas import (
+    AssessmentResponseCreate, AssessmentResponseCreateParams,
+    AssessmentResponseReadWithQuestions
+)
 from .models import Assessment, Question, ScoringMethod
 from .schemas import (
     AssessmentCreate, AssessmentRead,
@@ -180,19 +183,7 @@ async def delete_question(
 # Assessment Response endpoints
 
 
-@assessments_router.get("/{assessment_id}/responses", response_model=List["AssessmentResponseRead"])
-async def list_assessment_responses(
-    assessment_id: int,
-    session: Session = Depends(get_session)
-):
-    responses = session.exec(
-        select("AssessmentResponse")
-        .where("AssessmentResponse".assessment_id == assessment_id)
-    ).all()
-    return responses
-
-
-@assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
+@assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseReadWithQuestions)
 async def create_assessment_response(
     assessment_id: int,
     assessment_response_params: AssessmentResponseCreateParams,
@@ -218,9 +209,10 @@ async def create_assessment_response(
     session.commit()
     session.refresh(assessment_response)
 
-    return AssessmentResponseRead(
+    return AssessmentResponseReadWithQuestions(
         id=assessment_response.id,
         assessment_id=assessment_response.assessment_id,
+        assessment=assessment,
         examinee_id=assessment_response.examinee_id,
         status=assessment_response.status,
         score=assessment_response.score,

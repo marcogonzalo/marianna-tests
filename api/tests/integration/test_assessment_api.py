@@ -127,7 +127,7 @@ async def test_assessment_response_workflow(async_client: AsyncClient, sample_as
 
     # Create assessment response with initial status
     response = await async_client.post(
-        f"/assessments/{str(sample_assessment.id)}/responses",
+        f"/assessments/{sample_assessment.id}/responses",
         json={"examinee_id": str(sample_examinee.id)}
     )
     assert response.status_code == 200

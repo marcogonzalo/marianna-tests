@@ -5,6 +5,15 @@ import { Examinee } from '@/features/examinees/types'; // Assume this type is de
 import { Page } from '@/layouts/Page';
 import { FormButton } from '@/components/ui';
 import { AssignAssessmentModal } from '@/features/assessments/components/AssignAssessmentModal';
+import AssessmentResponseList from '@/features/assessments/components/AssessmentResponseList';
+import {
+    changeAssessmentResponseStatus,
+    getAssessmentResponses,
+} from '@/features/assessments/api'; // Import the new function
+import {
+    AssessmentResponse,
+    ResponseStatus,
+} from '@/features/assessments/types';
 
 export default function ExamineeDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -12,6 +21,9 @@ export default function ExamineeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [assessmentResponses, setAssessmentResponses] = useState<
+        AssessmentResponse[]
+    >([]);
 
     useEffect(() => {
         const fetchExaminee = async () => {
@@ -30,6 +42,21 @@ export default function ExamineeDetailPage() {
 
         fetchExaminee();
     }, [id]);
+
+    useEffect(() => {
+        const fetchAssessmentResponses = async () => {
+            if (examinee) {
+                try {
+                    const responses = await getAssessmentResponses(examinee.id);
+                    setAssessmentResponses(responses);
+                } catch (err) {
+                    console.error('Error loading assessment responses:', err);
+                }
+            }
+        };
+
+        fetchAssessmentResponses();
+    }, [examinee]);
 
     const handleOpenModal = () => {
         setIsAssignModalOpen(true);
@@ -63,6 +90,25 @@ export default function ExamineeDetailPage() {
                 </div>
             </Page>
         );
+    }
+
+    async function handleStatusChange(
+        id: string,
+        newStatus: ResponseStatus,
+    ): Promise<void> {
+        try {
+            await changeAssessmentResponseStatus(id, newStatus);
+            setAssessmentResponses((prevResponses) =>
+                prevResponses.map((response) =>
+                    response.id === id
+                        ? { ...response, status: newStatus }
+                        : response,
+                ),
+            );
+        } catch (err) {
+            console.error('Error updating assessment response status:', err);
+            alert('Error updating assessment response status');
+        }
     }
 
     return (
@@ -117,6 +163,10 @@ export default function ExamineeDetailPage() {
                         </div>
                     </div>
                 </div>
+                <AssessmentResponseList
+                    responses={assessmentResponses} // Assuming this is the structure of your examinee data
+                    onStatusChange={handleStatusChange} // Define this function to handle status changes
+                />
             </div>
             <AssignAssessmentModal
                 isOpen={isAssignModalOpen}
