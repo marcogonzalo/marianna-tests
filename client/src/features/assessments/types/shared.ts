@@ -1,1 +1,5 @@
-export type ScoringMethod = 'boolean' | 'scored' | 'custom';
+export enum ScoringMethod {
+    BOOLEAN = 'boolean',
+    SCORED = 'scored',
+    CUSTOM = 'custom',
+}

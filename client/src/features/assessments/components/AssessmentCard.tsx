@@ -1,5 +1,6 @@
 import InfoBadge from '@/components/ui/InfoBadge';
 import { Assessment } from '@/features/assessments/types/client';
+import { ScoringMethod } from '@/features/assessments/types/shared';
 
 interface AssessmentCardProps {
     assessment: Assessment;
@@ -26,9 +27,9 @@ export default function AssessmentCard({
 
             <div className="flex items-center justify-between text-sm">
                 <InfoBadge color="gray">
-                    {assessment.scoringMethod === 'boolean'
+                    {assessment.scoringMethod === ScoringMethod.BOOLEAN
                         ? 'Boolean (0-1)'
-                        : assessment.scoringMethod === 'scored'
+                        : assessment.scoringMethod === ScoringMethod.SCORED
                         ? 'Scored (-1 to 1)'
                         : `Custom (${assessment.minValue} to ${assessment.maxValue})`}
                 </InfoBadge>
