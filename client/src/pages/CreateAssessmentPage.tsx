@@ -22,7 +22,7 @@ interface AssessmentForm {
 const initialForm: AssessmentForm = {
     title: '',
     description: '',
-    scoringMethod: 'boolean',
+    scoringMethod: ScoringMethod.BOOLEAN,
     minValue: 0,
     maxValue: 1,
 };
@@ -44,7 +44,7 @@ export default function CreateAssessmentPage() {
         let min = 0;
         let max = 1;
 
-        if (method === 'scored') {
+        if (method === ScoringMethod.SCORED) {
             min = -1;
             max = 1;
         }
@@ -124,9 +124,15 @@ export default function CreateAssessmentPage() {
                                     )
                                 }
                             >
-                                <option value="boolean">Boolean (0-1)</option>
-                                <option value="scored">Scored (-1 to 1)</option>
-                                <option value="custom">Custom Range</option>
+                                {Object.values(ScoringMethod).map((method) => (
+                                    <option key={method} value={method}>
+                                        {method === ScoringMethod.BOOLEAN
+                                            ? 'Boolean (0-1)'
+                                            : method === ScoringMethod.SCORED
+                                            ? 'Scored (-1 to 1)'
+                                            : 'Custom Range'}
+                                    </option>
+                                ))}
                             </FormSelect>
                         </div>
 
