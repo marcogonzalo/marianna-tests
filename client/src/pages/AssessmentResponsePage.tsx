@@ -13,10 +13,10 @@ import { Page } from '@/layouts/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import { FormButton } from '@/components/ui';
 import ChoiceList from '@/features/assessments/components/ChoiceList';
+import { ResponseStatus } from '@/features/assessments/types';
 
 export default function AssessmentResponsePage() {
-    const { id, responseId } = useParams<{
-        id: string;
+    const { responseId } = useParams<{
         responseId: string;
     }>();
     const navigate = useNavigate();
@@ -28,25 +28,26 @@ export default function AssessmentResponsePage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                if (!id || !responseId)
-                    throw new Error('Assessment and Response IDs are required');
-                const [assessmentData, responseData] = await Promise.all([
-                    getAssessment(parseInt(id)),
-                    getAssessmentResponse(parseInt(responseId)),
-                ]);
-                setAssessment(assessmentData);
+                if (!responseId) throw new Error('Response IDs is required');
+                const responseData = await getAssessmentResponse(responseId);
                 setResponse(responseData);
                 setError(null);
+                if (!responseData.assessmentId)
+                    throw new Error('Assessment IDs is required');
+                const assessmentData = await getAssessment(
+                    responseData.assessmentId,
+                );
+                setAssessment(assessmentData);
             } catch (err) {
-                setError('Failed to load response data');
-                console.error('Error loading response data:', err);
+                setError('Failed to load assessment response data');
+                console.error('Error loading assessment response data:', err);
             } finally {
                 setLoading(false);
             }
         };
 
         loadData();
-    }, [id, responseId]);
+    }, [responseId]);
 
     if (loading) {
         return (
@@ -80,7 +81,7 @@ export default function AssessmentResponsePage() {
                         )?.value;
 
                     return {
-                        assessmentResponseId: response.id!,
+                        assessmentResponseId: response.id,
                         questionId: question.id!,
                         numericValue: selectedValue
                             ? parseInt(selectedValue)
@@ -90,11 +91,12 @@ export default function AssessmentResponsePage() {
                 .filter((qr) => qr.numericValue > 0);
 
             const updatedResponse = {
+                ...response,
+                status: ResponseStatus.COMPLETED,
                 questionResponses,
             };
 
             await updateAssessmentResponse(response.id!, updatedResponse);
-            navigate(`/assessments/${id}/responses`);
         } catch (error) {
             console.error('Error submitting responses:', error);
             setError('Failed to submit responses');
@@ -107,7 +109,9 @@ export default function AssessmentResponsePage() {
                 <div className="flex-1">
                     <AssessmentCard
                         assessment={assessment}
-                        onClick={() => navigate(`/assessments/${id}`)}
+                        onClick={() =>
+                            navigate(`/assessments/${assessment.id}`)
+                        }
                     />
                 </div>
                 <div className="ml-4">

@@ -2,6 +2,8 @@ from typing import Optional, List
 from pydantic import UUID4, BaseModel, field_validator, Field
 from datetime import datetime, timezone
 
+from assessments.schemas import AssessmentBase, AssessmentRead
+
 from .models import ResponseStatus
 from utils.datetime import get_current_datetime
 
@@ -17,15 +19,15 @@ class AssessmentResponseUpdate(BaseModel):
     score: Optional[float] = None
 
 
-class AssessmentResponseRead(BaseModel):
+class AssessmentResponseRead(AssessmentResponseCreate):
     id: str
-    status: ResponseStatus
-    score: Optional[float]
+    score: Optional[float] = None
     created_at: datetime = Field(default_factory=get_current_datetime)
     updated_at: datetime = Field(default_factory=get_current_datetime)
-    assessment_id: int
-    question_responses: List["QuestionResponseRead"]
-    examinee_id: UUID4 | str
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
     @field_validator('created_at', 'updated_at')
     @classmethod
@@ -33,6 +35,24 @@ class AssessmentResponseRead(BaseModel):
         if v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
         return v
+
+
+class AssessmentResponseReadWithAssessment(AssessmentResponseRead):
+    id: str
+    score: Optional[float]
+    assessment: Optional[AssessmentBase]
+    examinee_id: UUID4 | str
+
+
+class AssessmentResponseReadWithQuestions(AssessmentResponseReadWithAssessment):
+    id: str
+    status: ResponseStatus
+    score: Optional[float]
+    assessment: AssessmentRead
+    question_responses: List["QuestionResponseRead"] = []
+
+    class Config:
+        from_attributes = True
 
 
 class BulkQuestionResponseCreate(BaseModel):

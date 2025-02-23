@@ -3,3 +3,10 @@ export enum ScoringMethod {
     SCORED = 'scored',
     CUSTOM = 'custom',
 }
+
+export enum ResponseStatus {
+    PENDING = 'pending',
+    COMPLETED = 'completed',
+    ABANDONED = 'abandoned',
+    DISCARDED = 'discarded',
+}

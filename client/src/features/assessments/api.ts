@@ -7,6 +7,7 @@ import {
     CreateAssessmentResponse,
     Question,
     QuestionAPI,
+    ResponseStatus,
 } from '@/features/assessments/types/';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
 
@@ -64,7 +65,7 @@ export async function deleteQuestion(
     });
 }
 
-export async function getAssessmentResponses(
+export async function getResponsesToAssessmentes(
     assessmentId: number,
 ): Promise<AssessmentResponse[]> {
     const data = await fetchApi<AssessmentResponseAPI[]>(
@@ -74,11 +75,9 @@ export async function getAssessmentResponses(
 }
 
 export async function getAssessmentResponse(
-    responseId: number,
+    responseId: string,
 ): Promise<AssessmentResponse> {
-    const data = await fetchApi<AssessmentResponse>(
-        `/assessments/responses/${responseId}`,
-    );
+    const data = await fetchApi<AssessmentResponse>(`/responses/${responseId}`);
     return transformKeys(data, toCamelCase) as AssessmentResponse;
 }
 
@@ -86,8 +85,10 @@ export async function createAssessmentResponse(
     assessmentId: number,
     data: CreateAssessmentResponse,
 ): Promise<AssessmentResponse> {
-
-    const transformedData = transformKeys(data, toSnakeCase) as AssessmentResponseAPI;
+    const transformedData = transformKeys(
+        data,
+        toSnakeCase,
+    ) as AssessmentResponseAPI;
     const response = await fetchApi<AssessmentResponse>(
         `/assessments/${assessmentId}/responses`,
         {
@@ -99,7 +100,7 @@ export async function createAssessmentResponse(
 }
 
 export async function updateAssessmentResponse(
-    responseId: number,
+    responseId: string,
     data: AssessmentResponse,
 ): Promise<AssessmentResponse> {
     const transformedData = transformKeys(
@@ -107,11 +108,34 @@ export async function updateAssessmentResponse(
         toSnakeCase,
     ) as AssessmentResponseAPI;
     const response = await fetchApi<AssessmentResponseAPI>(
-        `/assessments/responses/${responseId}`,
+        `/responses/${responseId}`,
         {
             method: 'PUT',
             body: JSON.stringify(transformedData),
         },
     );
     return transformKeys(response, toCamelCase) as AssessmentResponse;
+}
+
+export async function changeAssessmentResponseStatus(
+    responseId: string,
+    status: ResponseStatus,
+): Promise<AssessmentResponse> {
+    const response = await fetchApi<AssessmentResponseAPI>(
+        `/responses/${responseId}/change-status`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+        },
+    );
+    return transformKeys(response, toCamelCase) as AssessmentResponse;
+}
+
+export async function getAssessmentResponses(
+    examineeId?: string,
+): Promise<AssessmentResponse[]> {
+    const data = await fetchApi<AssessmentResponseAPI[]>(
+        examineeId ? `/responses?examinee_id=${examineeId}` : '/responses',
+    );
+    return transformKeys(data, toCamelCase) as AssessmentResponse[];
 }

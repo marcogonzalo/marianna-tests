@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import UUID4, BaseModel, field_validator, Field
+from pydantic import BaseModel, field_validator, Field
 from datetime import datetime, timezone
 from .models import ScoringMethod
 from utils.datetime import get_current_datetime
@@ -95,13 +95,15 @@ class QuestionUpdate(QuestionCreate):
     choices: List[ChoiceUpdate]
 
 
-class AssessmentCreate(BaseModel):
+class AssessmentBase(BaseModel):
+    id: Optional[int] = None
     title: str
     description: Optional[str] = None
     min_value: Optional[float] = None
     max_value: Optional[float] = None
     scoring_method: ScoringMethod
-    questions: Optional[List[QuestionCreate]] = None
+    created_at: datetime = Field(default_factory=get_current_datetime)
+    updated_at: datetime = Field(default_factory=get_current_datetime)
 
     @field_validator('min_value', 'max_value')
     @classmethod
@@ -111,6 +113,15 @@ class AssessmentCreate(BaseModel):
                 "Custom scoring method requires min_value and max_value")
         if v is not None and v < 0:
             raise ValueError("Values cannot be negative")
+        return v
+
+    @field_validator('min_value')
+    @classmethod
+    def validate_min_value(cls, v, info):
+        if v is None:
+            return v
+        if info.data.get('max_value') is not None and v < info.data['max_value']:
+            raise ValueError("max_value must be greater than min_value")
         return v
 
     @field_validator('max_value')
@@ -132,12 +143,13 @@ class AssessmentCreate(BaseModel):
                     "Custom scoring method requires explicit min_value and max_value")
         return v
 
-
-class AssessmentRead(AssessmentCreate):
-    id: int
-    created_at: datetime = Field(default_factory=get_current_datetime)
-    updated_at: datetime = Field(default_factory=get_current_datetime)
-    questions: List[QuestionRead]
+    @field_validator('scoring_method')
+    @classmethod
+    def set_default_values(cls, v, info):
+        if v == ScoringMethod.BOOLEAN:
+            info.data['min_value'] = 0.0
+            info.data['max_value'] = 1.0
+        return v
 
     @field_validator('created_at', 'updated_at')
     @classmethod
@@ -145,3 +157,12 @@ class AssessmentRead(AssessmentCreate):
         if v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
         return v
+
+
+class AssessmentCreate(AssessmentBase):
+    questions: List[QuestionCreate] = []
+
+
+class AssessmentRead(AssessmentCreate):
+    id: int
+    questions: List[QuestionRead] = []

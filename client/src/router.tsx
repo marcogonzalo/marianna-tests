@@ -30,7 +30,7 @@ const router = createBrowserRouter([
         element: <AssessmentResponsesPage />,
     },
     {
-        path: '/assessments/:id/responses/:responseId',
+        path: '/responses/:responseId',
         element: <AssessmentResponsePage />,
     },
     {

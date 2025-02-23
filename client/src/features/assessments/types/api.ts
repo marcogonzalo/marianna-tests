@@ -1,4 +1,4 @@
-import { ScoringMethod } from './shared';
+import { ResponseStatus, ScoringMethod } from './shared';
 
 export interface AssessmentAPI {
     id?: number;
@@ -33,7 +33,8 @@ export interface ChoiceAPI {
 export interface AssessmentResponseAPI {
     id?: number;
     assessment_id: number;
-    status: 'in_progress' | 'completed' | 'abandoned';
+    assessment?: AssessmentAPI;
+    status: ResponseStatus;
     examinee_id?: string;
     score?: number;
     created_at: string;
