@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getExaminee } from '@/features/examinees/api'; // Assume this function fetches an examinee by ID
 import { Examinee } from '@/features/examinees/types'; // Assume this type is defined in a types file
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import { FormButton } from '@/components/ui';
 import { AssignAssessmentModal } from '@/features/assessments/components/AssignAssessmentModal';
 import AssessmentResponseList from '@/features/assessments/components/AssessmentResponseList';

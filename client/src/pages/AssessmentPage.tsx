@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getAssessment } from '@/features/assessments/api';
 import { Assessment } from '@/features/assessments/types/client';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import QuestionFormList from '@/features/assessments/components/QuestionFormList';
 import { FormButton } from '@/components/ui';

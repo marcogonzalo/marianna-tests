@@ -9,7 +9,7 @@ import {
     Assessment,
     AssessmentResponse,
 } from '@/features/assessments/types/client';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import { FormButton } from '@/components/ui';
 import ChoiceList from '@/features/assessments/components/ChoiceList';
@@ -24,6 +24,10 @@ export default function AssessmentResponsePage() {
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const isViewable = (response: AssessmentResponse): boolean =>
+        response.status === ResponseStatus.PENDING ||
+        response.status === ResponseStatus.COMPLETED;
 
     useEffect(() => {
         const loadData = async () => {
@@ -115,21 +119,26 @@ export default function AssessmentResponsePage() {
                     />
                 </div>
                 <div className="ml-4">
-                    <FormButton
-                        variant="secondary"
-                        onClick={sendAssessmentResponse}
-                    >
-                        Submit Responses
-                    </FormButton>
+                    {response.status === ResponseStatus.PENDING && (
+                        <FormButton
+                            variant="primary"
+                            onClick={sendAssessmentResponse}
+                        >
+                            Submit Responses
+                        </FormButton>
+                    )}
+
+                    {response.status !== ResponseStatus.PENDING && (
+                        <FormButton
+                            variant="primary"
+                            onClick={() =>
+                                navigate(`/examinees/${response.examineeId}`)
+                            }
+                        >
+                            Back to Examinee
+                        </FormButton>
+                    )}
                 </div>
-                {/* <div className="ml-4">
-                    <FormButton
-                        variant="secondary"
-                        onClick={() => navigate(`/assessments/${id}/responses`)}
-                    >
-                        Back to Responses
-                    </FormButton>
-                </div> */}
             </div>
 
             <div className="mt-8">
@@ -162,27 +171,28 @@ export default function AssessmentResponsePage() {
                     </div>
 
                     <div className="mt-8 space-y-8">
-                        {assessment.questions?.map((question) => {
-                            // const questionResponse =
-                            //     response.questionResponses?.find(
-                            //         (qr) => qr.questionId === question.id,
-                            //     );
+                        {isViewable(response) &&
+                            assessment.questions?.map((question) => {
+                                // const questionResponse =
+                                //     response.questionResponses?.find(
+                                //         (qr) => qr.questionId === question.id,
+                                //     );
 
-                            return (
-                                <div
-                                    key={question.id}
-                                    className="border-t border-gray-200 pt-6"
-                                >
-                                    <h4 className="text-base font-semibold text-gray-900">
-                                        {question.text}
-                                    </h4>
-                                    <ChoiceList
-                                        choices={question.choices}
-                                        name={'question-' + question.id}
-                                    />
-                                </div>
-                            );
-                        })}
+                                return (
+                                    <div
+                                        key={question.id}
+                                        className="border-t border-gray-200 pt-6"
+                                    >
+                                        <h4 className="text-base font-semibold text-gray-900">
+                                            {question.text}
+                                        </h4>
+                                        <ChoiceList
+                                            choices={question.choices}
+                                            name={'question-' + question.id}
+                                        />
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             </div>

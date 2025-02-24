@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { deleteUser, getUsers } from '@/features/users/api';
 import { User } from '@/features/users/types';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import { FormButton } from '@/components/ui';
 import { CreateUserModal } from '@/features/users/components/CreateUserModal';
 

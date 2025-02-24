@@ -9,7 +9,7 @@ import {
     Assessment,
     AssessmentResponse,
 } from '@/features/assessments/types/client';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import { FormButton } from '@/components/ui';
 
@@ -150,7 +150,7 @@ export default function AssessmentResponsesPage() {
                                     </td>
                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <FormButton
-                                            variant="text"
+                                            variant="link"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 navigate(
