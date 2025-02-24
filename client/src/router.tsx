@@ -7,7 +7,9 @@ import AssessmentResponsePage from './pages/AssessmentResponsePage';
 import UsersPage from './pages/UsersPage';
 import ExamineesPage from './pages/ExamineesPage';
 import ExamineePage from './pages/ExamineePage';
+import PublicAssessmentResponsePage from './pages/public/PublicAssessmentResponsePage';
 import DefaultLayout from './layouts/DefaultLayout';
+import PublicLayout from './layouts/PublicLayout';
 
 const router = createBrowserRouter([
     {
@@ -48,6 +50,15 @@ const router = createBrowserRouter([
             {
                 path: '/examinees',
                 element: <ExamineesPage />,
+            },
+        ],
+    },
+    {
+        element: <PublicLayout />,
+        children: [
+            {
+                path: '/private-response/:responseId',
+                element: <PublicAssessmentResponsePage />,
             },
         ],
     },
