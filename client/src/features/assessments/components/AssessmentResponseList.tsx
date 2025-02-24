@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     AssessmentResponse,
     ResponseStatus,
 } from '@/features/assessments/types';
+import { FormButton } from '@/components/ui';
 interface AssessmentResponseListProps {
     responses: AssessmentResponse[];
     onStatusChange: (id: string, newStatus: ResponseStatus) => void; // Update to use ResponseStatus directly
@@ -12,6 +14,8 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
     responses,
     onStatusChange,
 }) => {
+    const navigate = useNavigate();
+
     const handleCopyUrl = (url: string) => {
         navigator.clipboard.writeText(url);
         alert('URL copied to clipboard!');
@@ -27,7 +31,7 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                     <tr>
                         <th className="py-2 px-4 border-b">Assessment Name</th>
                         <th className="py-2 px-4 border-b">Status</th>
-                        <th className="py-2 px-4 border-b">Copy URL</th>
+                        <th className="py-2 px-4 border-b">Action</th>
                         <th className="py-2 px-4 border-b">Created At</th>
                         <th className="py-2 px-4 border-b">Updated At</th>
                     </tr>
@@ -68,16 +72,31 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                                 </select>
                             </td>
                             <td className="py-2 px-4 border-b">
-                                <button
-                                    onClick={() =>
-                                        handleCopyUrl(
-                                            `your-app-url/assessment/${response.id}`,
-                                        )
-                                    }
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    Copy URL
-                                </button>
+                                {response.status === ResponseStatus.PENDING && (
+                                    <FormButton
+                                        onClick={() =>
+                                            handleCopyUrl(
+                                                `${window.location.origin}/private-response/${response.id}`,
+                                            )
+                                        }
+                                        variant="link"
+                                    >
+                                        Copy URL
+                                    </FormButton>
+                                )}
+                                {response.status ===
+                                    ResponseStatus.COMPLETED && (
+                                    <FormButton
+                                        onClick={() =>
+                                            navigate(
+                                                `/responses/${response.id}`,
+                                            )
+                                        }
+                                        variant="link"
+                                    >
+                                        View
+                                    </FormButton>
+                                )}
                             </td>
                             <td className="py-2 px-4 border-b">
                                 {new Date(

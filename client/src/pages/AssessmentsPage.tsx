@@ -4,7 +4,7 @@ import AssessmentList from '@/features/assessments/components/AssessmentList';
 import { Assessment } from '@/features/assessments/types/client';
 import { getAssessments } from '@/features/assessments/api';
 import { FormButton } from '@/components/ui';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 
 export default function AssessmentsPage() {
     const navigate = useNavigate();

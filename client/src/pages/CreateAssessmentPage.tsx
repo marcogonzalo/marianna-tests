@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ScoringMethod } from '@/features/assessments/types/shared';
-import { Page } from '@/layouts/Page';
+import { Page } from '../layouts/components/Page';
 import {
     FormButton,
     FormInput,
