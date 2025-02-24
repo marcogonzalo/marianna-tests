@@ -53,7 +53,7 @@ const ChoiceForm: React.FC<
                     }}
                 />
                 <FormButton
-                    variant="text"
+                    variant="link"
                     onClick={onDelete}
                     className="self-end mb-1 text-red-500 hover:text-red-700"
                 >

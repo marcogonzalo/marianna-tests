@@ -1,7 +1,7 @@
 import { Button } from '@headlessui/react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'danger' | 'text';
+    variant?: 'primary' | 'secondary' | 'danger' | 'link';
     size?: 'sm' | 'md' | 'lg';
 }
 
@@ -25,7 +25,7 @@ export default function FormButton({
             base: 'btn-secondary text-white bg-indigo-400 shadow-sm',
             hover: 'hover:bg-indigo-700',
         },
-        text: {
+        link: {
             base: 'btn-text text-indigo-600',
             hover: 'hover:text-indigo-700',
         },

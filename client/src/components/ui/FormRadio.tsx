@@ -4,7 +4,13 @@ interface RadioProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     name: string;
 }
-export default function FormRadio({ id, label, value, name }: RadioProps) {
+export default function FormRadio({
+    id,
+    label,
+    value,
+    name,
+    ...rest
+}: RadioProps) {
     return (
         <label
             htmlFor={id}
@@ -16,6 +22,7 @@ export default function FormRadio({ id, label, value, name }: RadioProps) {
                 value={value}
                 name={name}
                 className="form-radio"
+                {...rest}
             />
             <span className="text-sm text-gray-700">{label}</span>
         </label>
