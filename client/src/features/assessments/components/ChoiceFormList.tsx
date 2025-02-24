@@ -88,7 +88,7 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
                     />
                 ))}
                 <FormButton
-                    variant="text"
+                    variant="link"
                     onClick={handleAddChoice}
                     className="underline self-center"
                 >

@@ -142,7 +142,7 @@ export default function UsersPage() {
                                 </td>
                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                     <FormButton
-                                        variant="text"
+                                        variant="link"
                                         className="text-red-600 hover:text-red-800"
                                         onClick={() =>
                                             handleUserDeleted(user.id)
