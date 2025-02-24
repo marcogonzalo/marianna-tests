@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     getAssessment,
     getAssessmentResponse,
-    updateAssessmentResponse,
 } from '@/features/assessments/api';
 import {
     Assessment,
@@ -73,40 +72,6 @@ export default function AssessmentResponsePage() {
         );
     }
 
-    const sendAssessmentResponse = async () => {
-        try {
-            if (!assessment || !response) return;
-
-            const questionResponses = assessment?.questions
-                ?.map((question) => {
-                    const selectedValue =
-                        document.querySelector<HTMLInputElement>(
-                            `input[name="question-${question.id}"]:checked`,
-                        )?.value;
-
-                    return {
-                        assessmentResponseId: response.id,
-                        questionId: question.id!,
-                        numericValue: selectedValue
-                            ? parseInt(selectedValue)
-                            : 0,
-                    };
-                })
-                .filter((qr) => qr.numericValue > 0);
-
-            const updatedResponse = {
-                ...response,
-                status: ResponseStatus.COMPLETED,
-                questionResponses,
-            };
-
-            await updateAssessmentResponse(response.id!, updatedResponse);
-        } catch (error) {
-            console.error('Error submitting responses:', error);
-            setError('Failed to submit responses');
-        }
-    };
-
     return (
         <Page title={`Response for: ${assessment.title}`}>
             <div className="flex justify-between items-center mb-4">
@@ -119,25 +84,14 @@ export default function AssessmentResponsePage() {
                     />
                 </div>
                 <div className="ml-4">
-                    {response.status === ResponseStatus.PENDING && (
-                        <FormButton
-                            variant="primary"
-                            onClick={sendAssessmentResponse}
-                        >
-                            Submit Responses
-                        </FormButton>
-                    )}
-
-                    {response.status !== ResponseStatus.PENDING && (
-                        <FormButton
-                            variant="primary"
-                            onClick={() =>
-                                navigate(`/examinees/${response.examineeId}`)
-                            }
-                        >
-                            Back to Examinee
-                        </FormButton>
-                    )}
+                    <FormButton
+                        variant="primary"
+                        onClick={() =>
+                            navigate(`/examinees/${response.examineeId}`)
+                        }
+                    >
+                        Back to Examinee
+                    </FormButton>
                 </div>
             </div>
 
@@ -173,11 +127,6 @@ export default function AssessmentResponsePage() {
                     <div className="mt-8 space-y-8">
                         {isViewable(response) &&
                             assessment.questions?.map((question) => {
-                                // const questionResponse =
-                                //     response.questionResponses?.find(
-                                //         (qr) => qr.questionId === question.id,
-                                //     );
-
                                 return (
                                     <div
                                         key={question.id}
@@ -189,6 +138,14 @@ export default function AssessmentResponsePage() {
                                         <ChoiceList
                                             choices={question.choices}
                                             name={'question-' + question.id}
+                                            showDisabled
+                                            response={
+                                                response.questionResponses?.find(
+                                                    (qr) =>
+                                                        qr.questionId ===
+                                                        question.id,
+                                                )?.numericValue
+                                            }
                                         />
                                     </div>
                                 );
