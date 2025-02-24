@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
     getAssessment,
     getAssessmentResponse,
@@ -19,7 +19,6 @@ export default function AssessmentResponsePage() {
     const { responseId } = useParams<{
         responseId: string;
     }>();
-    const navigate = useNavigate();
     const [assessment, setAssessment] = useState<Assessment | null>(null);
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -50,6 +49,45 @@ export default function AssessmentResponsePage() {
 
         loadData();
     }, [responseId]);
+
+    const sendAssessmentResponse = async () => {
+        try {
+            if (!assessment || !response) return;
+
+            const questionResponses = assessment?.questions
+                ?.map((question) => {
+                    const selectedValue =
+                        document.querySelector<HTMLInputElement>(
+                            `input[name="question-${question.id}"]:checked`,
+                        )?.value;
+
+                    if (!selectedValue)
+                        throw new Error(
+                            'Invalid response to question: ' + question.text,
+                        );
+                    return {
+                        assessmentResponseId: response.id,
+                        questionId: question.id!,
+                        numericValue: selectedValue
+                            ? parseInt(selectedValue)
+                            : 0,
+                    };
+                })
+                .filter((qr) => qr.numericValue >= 0);
+
+            const updatedResponse = {
+                ...response,
+                status: ResponseStatus.COMPLETED,
+                questionResponses,
+            };
+            await updateAssessmentResponse(response.id!, updatedResponse);
+            setResponse(updatedResponse);
+        } catch (error) {
+            console.error('Error submitting responses:', error);
+            setError('Failed to submit responses: ' + error);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 py-8">
@@ -81,40 +119,6 @@ export default function AssessmentResponsePage() {
             </div>
         );
     }
-
-    const sendAssessmentResponse = async () => {
-        try {
-            if (!assessment || !response) return;
-
-            const questionResponses = assessment?.questions
-                ?.map((question) => {
-                    const selectedValue =
-                        document.querySelector<HTMLInputElement>(
-                            `input[name="question-${question.id}"]:checked`,
-                        )?.value;
-
-                    return {
-                        assessmentResponseId: response.id,
-                        questionId: question.id!,
-                        numericValue: selectedValue
-                            ? parseInt(selectedValue)
-                            : 0,
-                    };
-                })
-                .filter((qr) => qr.numericValue > 0);
-
-            const updatedResponse = {
-                ...response,
-                status: ResponseStatus.COMPLETED,
-                questionResponses,
-            };
-
-            await updateAssessmentResponse(response.id!, updatedResponse);
-        } catch (error) {
-            console.error('Error submitting responses:', error);
-            setError('Failed to submit responses');
-        }
-    };
 
     return (
         <Page title={`Response for: ${assessment.title}`}>
@@ -151,17 +155,6 @@ export default function AssessmentResponsePage() {
                             Submit Responses
                         </FormButton>
                     )}
-
-                    {response.status !== ResponseStatus.PENDING && (
-                        <FormButton
-                            variant="primary"
-                            onClick={() =>
-                                navigate(`/examinees/${response.examineeId}`)
-                            }
-                        >
-                            Back to Examinee
-                        </FormButton>
-                    )}
                 </div>
             </div>
 
@@ -179,11 +172,6 @@ export default function AssessmentResponsePage() {
 
                     <div className="mt-8 space-y-8">
                         {assessment.questions?.map((question) => {
-                            // const questionResponse =
-                            //     response.questionResponses?.find(
-                            //         (qr) => qr.questionId === question.id,
-                            //     );
-
                             return (
                                 <div
                                     key={question.id}
