@@ -62,7 +62,7 @@ async def create_bulk_responses(
     # Create all question responses
     question_responses = []
     total_score = 0
-    all_numeric = True
+    # all_numeric = True
 
     for response_data in bulk_response.question_responses:
         question_response = AssessmentResponseService.create_question_response(
@@ -70,15 +70,15 @@ async def create_bulk_responses(
 
         if response_data.numeric_value is not None:
             total_score += response_data.numeric_value
-        else:
-            all_numeric = False
+        # else:
+        #     all_numeric = False
 
         question_responses.append(question_response)
 
     # Update assessment response status and score if all responses are numeric
-    if all_numeric:
-        assessment_response.score = total_score
-        assessment_response.status = ResponseStatus.COMPLETED
+    # if all_numeric:
+    assessment_response.score = total_score
+    assessment_response.status = ResponseStatus.COMPLETED
 
     session.commit()
     session.refresh(assessment_response)
