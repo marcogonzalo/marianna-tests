@@ -52,10 +52,12 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                                         )
                                     }
                                     className="border rounded p-1"
-                                    disabled={
-                                        (response.status as ResponseStatus) !==
-                                        ResponseStatus.PENDING
-                                    }
+                                    disabled={[
+                                        ResponseStatus.COMPLETED,
+                                        ResponseStatus.DISCARDED,
+                                    ].includes(
+                                        response.status as ResponseStatus,
+                                    )}
                                 >
                                     {Object.values(ResponseStatus).map(
                                         (status) => (
