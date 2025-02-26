@@ -15,16 +15,16 @@ export default function ChoiceList({
     showDisabled = false,
 }: ChoiceListProps) {
     return (
-        <div className="mt-4">
-            {choices.map((choice, index) => (
+        <>
+            {choices.map((choice) => (
                 <Choice
-                    key={index}
+                    key={choice.id}
                     {...choice}
                     name={name}
                     disabled={showDisabled}
                     checked={response === choice.value}
                 />
             ))}
-        </div>
+        </>
     );
 }

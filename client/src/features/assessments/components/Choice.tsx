@@ -11,18 +11,18 @@ export default function Choice({
     text,
     value,
     name,
-    checked = false,
+    checked,
     ...rest
 }: props) {
     const inputId = `${name}-${id}`;
     return (
         <FormRadio
+            {...rest}
             id={inputId}
             value={value}
             name={name}
             label={text}
-            checked={checked}
-            {...rest}
+            checked={checked ? true : undefined} // It's a workaround for the checked attribute
         />
     );
 }
