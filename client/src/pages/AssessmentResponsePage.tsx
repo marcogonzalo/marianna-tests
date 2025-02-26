@@ -7,6 +7,7 @@ import {
 import {
     Assessment,
     AssessmentResponse,
+    Question,
 } from '@/features/assessments/types/client';
 import { Page } from '../layouts/components/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
@@ -20,6 +21,7 @@ export default function AssessmentResponsePage() {
     }>();
     const navigate = useNavigate();
     const [assessment, setAssessment] = useState<Assessment | null>(null);
+    const [questionList, setQuestionList] = useState<Question[] | null>(null);
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,10 @@ export default function AssessmentResponsePage() {
                     responseData.assessmentId,
                 );
                 setAssessment(assessmentData);
+                const sortedQuestions = [...assessmentData.questions!].sort(
+                    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                );
+                setQuestionList(sortedQuestions);
             } catch (err) {
                 setError('Failed to load assessment response data');
                 console.error('Error loading assessment response data:', err);
@@ -126,7 +132,17 @@ export default function AssessmentResponsePage() {
 
                     <div className="mt-8 space-y-8">
                         {isViewable(response) &&
-                            assessment.questions?.map((question) => {
+                            questionList?.map((question) => {
+                                if (
+                                    !question.choices ||
+                                    question.choices.length === 0
+                                )
+                                    return null;
+
+                                const choices = [...question.choices].sort(
+                                    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                                );
+
                                 return (
                                     <div
                                         key={question.id}
@@ -136,7 +152,7 @@ export default function AssessmentResponsePage() {
                                             {question.text}
                                         </h4>
                                         <ChoiceList
-                                            choices={question.choices}
+                                            choices={choices}
                                             name={'question-' + question.id}
                                             showDisabled
                                             response={

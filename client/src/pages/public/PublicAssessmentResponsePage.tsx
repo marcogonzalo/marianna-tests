@@ -8,6 +8,7 @@ import {
 import {
     Assessment,
     AssessmentResponse,
+    Question,
 } from '@/features/assessments/types/client';
 import { Page } from '../../layouts/components/Page';
 import { FormButton } from '@/components/ui';
@@ -20,6 +21,7 @@ export default function AssessmentResponsePage() {
         responseId: string;
     }>();
     const [assessment, setAssessment] = useState<Assessment | null>(null);
+    const [questionList, setQuestionList] = useState<Question[] | null>(null);
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,10 @@ export default function AssessmentResponsePage() {
                     responseData.assessmentId,
                 );
                 setAssessment(assessmentData);
+                const sortedQuestions = [...assessmentData.questions!].sort(
+                    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                );
+                setQuestionList(sortedQuestions);
             } catch (err) {
                 setError('Failed to load assessment response data');
                 console.error('Error loading assessment response data:', err);
@@ -159,7 +165,7 @@ export default function AssessmentResponsePage() {
             </div>
 
             <div className="mt-8">
-                <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                <div className="">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             {response.score !== null && (
@@ -171,17 +177,24 @@ export default function AssessmentResponsePage() {
                     </div>
 
                     <div className="mt-8 space-y-8">
-                        {assessment.questions?.map((question) => {
+                        {questionList?.map((question) => {
+                            if (
+                                !question.choices ||
+                                question.choices.length === 0
+                            )
+                                return null;
+
+                            const choices = [...question.choices].sort(
+                                (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                            );
+
                             return (
-                                <div
-                                    key={question.id}
-                                    className="border-t border-gray-200 pt-6"
-                                >
+                                <div key={question.id} className="">
                                     <h4 className="text-base font-semibold text-gray-900">
                                         {question.text}
                                     </h4>
                                     <ChoiceList
-                                        choices={question.choices}
+                                        choices={choices}
                                         name={'question-' + question.id}
                                     />
                                 </div>
