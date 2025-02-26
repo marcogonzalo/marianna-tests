@@ -50,42 +50,6 @@ async def get_assessment_responses(
     return validated_responses
 
 
-@responses_router.put("/{response_id}", response_model=AssessmentResponseRead)
-async def create_bulk_responses(
-    response_id: str,
-    bulk_response: BulkQuestionResponseCreate,
-    session: Session = Depends(get_session)
-):
-    assessment_response = AssessmentResponseService.get_assessment_response(
-        session, response_id)
-
-    # Create all question responses
-    question_responses = []
-    total_score = 0
-    # all_numeric = True
-
-    for response_data in bulk_response.question_responses:
-        question_response = AssessmentResponseService.create_question_response(
-            session, response_data, response_id)
-
-        if response_data.numeric_value is not None:
-            total_score += response_data.numeric_value
-        # else:
-        #     all_numeric = False
-
-        question_responses.append(question_response)
-
-    # Update assessment response status and score if all responses are numeric
-    # if all_numeric:
-    assessment_response.score = total_score
-    assessment_response.status = ResponseStatus.COMPLETED
-
-    session.commit()
-    session.refresh(assessment_response)
-
-    return AssessmentResponseRead.model_validate(assessment_response)
-
-
 @responses_router.patch("/{response_id}/change-status", response_model=AssessmentResponseRead)
 async def change_status(
     response_id: str,
@@ -98,10 +62,27 @@ async def change_status(
     if assessment_response is None:
         return {"error": "Assessment response not found"}, 404
 
-    assessment_response.status = status_update.status
-    session.add(assessment_response)
-    session.commit()
-    session.refresh(assessment_response)
+    AssessmentResponseService.update_assessment_response_status_and_score(
+        session, assessment_response, status_update.status)
+
+    return AssessmentResponseRead.model_validate(assessment_response)
+
+
+@responses_router.put("/{response_id}", response_model=AssessmentResponseRead)
+async def create_bulk_responses(
+    response_id: str,
+    bulk_response: BulkQuestionResponseCreate,
+    session: Session = Depends(get_session)
+):
+    assessment_response = AssessmentResponseService.get_assessment_response(
+        session, response_id)
+
+    # Create all question responses and calculate the total score
+
+    # Update assessment response status and score
+    assessment_response = AssessmentResponseService.create_question_responses_bulk(
+        session, assessment_response, bulk_response)
+
     return AssessmentResponseRead.model_validate(assessment_response)
 
 

@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from typing import List
 from database import get_session
 from responses.schemas import (
-    AssessmentResponseCreate, AssessmentResponseCreateParams,
+    AssessmentResponseCreate, AssessmentResponseCreateParams, AssessmentResponseRead,
     AssessmentResponseReadWithQuestions
 )
 from .models import Assessment, Question, ScoringMethod
@@ -183,7 +183,7 @@ async def delete_question(
 # Assessment Response endpoints
 
 
-@assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseReadWithQuestions)
+@assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
 async def create_assessment_response(
     assessment_id: int,
     assessment_response_params: AssessmentResponseCreateParams,
@@ -209,14 +209,12 @@ async def create_assessment_response(
     session.commit()
     session.refresh(assessment_response)
 
-    return AssessmentResponseReadWithQuestions(
+    return AssessmentResponseRead(
         id=assessment_response.id,
         assessment_id=assessment_response.assessment_id,
-        assessment=assessment,
         examinee_id=assessment_response.examinee_id,
         status=assessment_response.status,
         score=assessment_response.score,
-        question_responses=[],  # Initialize with empty list
         created_at=assessment_response.created_at,
         updated_at=assessment_response.updated_at
     )

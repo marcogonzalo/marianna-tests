@@ -3,10 +3,9 @@ from pydantic import UUID4
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
-from .models import AssessmentResponse, QuestionResponse
-from .schemas import AssessmentResponseCreate, AssessmentResponseUpdate
+from .models import AssessmentResponse, QuestionResponse, ResponseStatus
+from .schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseUpdate, BulkQuestionResponseCreate
 from assessments.models import Assessment, Question
-from assessments.schemas import AssessmentRead
 
 
 class AssessmentResponseService:
@@ -120,3 +119,82 @@ class AssessmentResponseService:
             .all()
         )
         return responses
+
+    @staticmethod
+    def create_question_responses_bulk(session: Session, assessment_response: AssessmentResponseRead, bulk_response: BulkQuestionResponseCreate) -> AssessmentResponse:
+        """
+        Creates multiple question responses in bulk and calculates the total score.
+
+        Args:
+            session: The database session.
+            assessment_response: The assessment response object to check the status.
+            bulk_response: The bulk question response data.
+            response_id: The ID of the associated assessment response.
+
+        Returns:
+            A tuple containing the total score and a list of created question responses.
+        """
+        if assessment_response.status != ResponseStatus.PENDING:
+            raise HTTPException(
+                status_code=400, detail="Cannot process responses; the assessment is not in a PENDING state.")
+
+        question_responses = []
+        total_score = 0
+
+        for response_data in bulk_response.question_responses:
+            question_response = AssessmentResponseService.create_question_response(
+                session, response_data, assessment_response.id)
+
+            if response_data.numeric_value is not None:
+                total_score += response_data.numeric_value
+
+            question_responses.append(question_response)
+
+        assessment_response_saved = AssessmentResponseService.update_assessment_response_status_and_score(
+            session, assessment_response, ResponseStatus.COMPLETED, total_score)
+        if assessment_response_saved.status == ResponseStatus.COMPLETED:
+            assessment_response.score = total_score
+            assessment_response.status = ResponseStatus.COMPLETED
+
+        return assessment_response
+
+    @staticmethod
+    def update_assessment_response_status_and_score(session: Session, assessment_response: AssessmentResponse, status_update: ResponseStatus, total_score: float = None) -> AssessmentResponse:
+        """
+          Updates the assessment response status and score.
+
+          Args:
+              session: The database session.
+              assessment_response: Assessment Response object.
+              total_score: The total score.
+              status_update: The new status.
+          """
+
+        score_change = assessment_response.status == ResponseStatus.PENDING and status_update == ResponseStatus.COMPLETED and total_score is not None
+        if score_change:
+            assessment_response.score = total_score
+        else:
+            if AssessmentResponseService.is_status_change_invalid(assessment_response.status, status_update):
+                raise HTTPException(
+                    status_code=400, detail=f"Cannot change status from {assessment_response.status} to {status_update}")
+
+        assessment_response.status = status_update
+        session.add(assessment_response)
+        session.commit()
+        session.refresh(assessment_response)
+
+        return assessment_response
+
+    @staticmethod
+    def is_status_change_invalid(current_status: ResponseStatus, new_status: ResponseStatus) -> bool:
+        """
+        Validate that a status change is not allowed.
+        """
+        allowed_transitions = {
+            ResponseStatus.PENDING: [ResponseStatus.ABANDONED, ResponseStatus.DISCARDED],
+            ResponseStatus.COMPLETED: [ResponseStatus.DISCARDED],
+            ResponseStatus.ABANDONED: [ResponseStatus.PENDING, ResponseStatus.DISCARDED],
+            ResponseStatus.DISCARDED: [ResponseStatus.PENDING],
+        }
+
+        return new_status not in allowed_transitions.get(current_status, [])

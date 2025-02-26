@@ -33,7 +33,10 @@ class AssessmentResponse(SQLModel, table=True):
     )
     updated_at: datetime = Field(
         default_factory=get_current_datetime,
-        sa_type=DateTime(timezone=True)
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={
+            "onupdate": get_current_datetime,
+        }
     )
 
     # Foreign keys
