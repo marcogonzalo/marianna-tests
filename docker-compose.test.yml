@@ -29,6 +29,8 @@ services:
     volumes:
       - ./api:/app
       - /app/.venv/
+    env_file:
+      - ./api/.env
     environment:
       PYTHONDONTWRITEBYTECODE: 1
       PYTHONUNBUFFERED: 1

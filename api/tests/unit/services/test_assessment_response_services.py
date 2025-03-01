@@ -54,9 +54,9 @@ def test_get_assessment_response(session: Session, sample_assessment: Assessment
     retrieved_response = AssessmentResponseService.get_assessment_response(
         session, assessment_response.id)
 
-    assert retrieved_response.id == assessment_response.id
-    assert retrieved_response.assessment_id == sample_assessment.id
-    assert retrieved_response.examinee_id == sample_examinee.id
+    assert retrieved_response["id"] == assessment_response.id
+    assert retrieved_response["assessment_id"] == sample_assessment.id
+    assert retrieved_response["examinee_id"] == sample_examinee.id
 
 
 def test_list_assessment_responses(session: Session, sample_assessment: Assessment, sample_examinee: Examinee):

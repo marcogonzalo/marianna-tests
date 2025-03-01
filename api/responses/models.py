@@ -5,7 +5,6 @@ from sqlmodel import SQLModel, Field, Relationship, Text, DateTime
 from datetime import datetime, timezone
 from enum import Enum
 from assessments.models import Assessment, Choice
-from users.models import Examinee
 from utils.datetime import get_current_datetime
 
 
@@ -93,3 +92,6 @@ class QuestionResponse(SQLModel, table=True):
         super().__init__(**data)
         if self.created_at and self.created_at.tzinfo is None:
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
+
+
+from users.models import Examinee  # noqa

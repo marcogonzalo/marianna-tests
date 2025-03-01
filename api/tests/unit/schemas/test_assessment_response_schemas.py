@@ -52,19 +52,23 @@ def test_assessment_response_update_validation():
 
 
 def test_assessment_response_read_with__validation(sample_assessment: Assessment):
+    # Convert SQLModel to dict first, then to AssessmentRead
+    assessment_dict = sample_assessment.model_dump()
+    assessment_read = AssessmentRead(**assessment_dict)
+
     # Valid read
     response = AssessmentResponseReadWithQuestions(
         id="some_id",
         status=ResponseStatus.PENDING,
         score=None,
         assessment_id=sample_assessment.id,
-        assessment=AssessmentRead.model_validate(sample_assessment),
+        assessment=assessment_read,
         question_responses=[],
         examinee_id=uuid4()
     )
     assert response.id == "some_id"
     assert response.status == ResponseStatus.PENDING
-    assert response.assessment_id == 1
+    assert response.assessment_id == sample_assessment.id
     assert response.assessment.id == sample_assessment.id
     assert len(response.question_responses) == 0
 

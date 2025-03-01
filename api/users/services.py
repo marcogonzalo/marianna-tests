@@ -16,11 +16,11 @@ class UserService:
         return UserRead.model_validate(db_user) if db_user else None
 
     @staticmethod
-    def get_user_by_email(db: Session, email: str) -> Optional[UserRead]:
+    def get_user_by_email(db: Session, email: str) -> Optional[User]:
         db_user = db.query(User).filter(User.email == email, User.deleted_at.is_(None)).options(
             joinedload(User.account)
         ).first()
-        return UserRead.model_validate(db_user) if db_user else None
+        return db_user  # Return the DB model directly instead of converting to UserRead
 
     @staticmethod
     def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[UserRead]:

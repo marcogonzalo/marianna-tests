@@ -61,7 +61,13 @@ class AssessmentResponseService:
         if not assessment_response:
             raise HTTPException(
                 status_code=404, detail="Assessment response not found")
-        return assessment_response
+
+        # Convert SQLModel instances to dictionaries
+        response_dict = assessment_response.model_dump()
+        if assessment_response.assessment:
+            response_dict['assessment'] = assessment_response.assessment.model_dump()
+
+        return response_dict
 
     @staticmethod
     def list_assessment_responses(session: Session, assessment_id: int) -> List[AssessmentResponse]:

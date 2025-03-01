@@ -9,6 +9,7 @@ from responses.models import AssessmentResponse, QuestionResponse
 from responses.routes import responses_router
 from users.models import Account, User
 from users.routes import users_router, accounts_router, examinees_router
+from auth.routes import auth_router
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 
@@ -45,6 +46,7 @@ app.include_router(responses_router)
 app.include_router(users_router)
 app.include_router(accounts_router)
 app.include_router(examinees_router)
+app.include_router(auth_router)
 
 
 @app.get("/health")

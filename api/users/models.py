@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from uuid import uuid4
 from .enums import Gender, UserRole
 from utils.datetime import get_current_datetime
+from utils.password import verify_password
 
 
 class User(SQLModel, table=True):
@@ -38,6 +39,9 @@ class User(SQLModel, table=True):
         if self.updated_at and self.updated_at.tzinfo is None:
             self.updated_at = self.updated_at.replace(tzinfo=timezone.utc)
 
+    def verify_password(self, password: str) -> bool:
+        return verify_password(password, self.password_hash)
+
 
 class Account(SQLModel, table=True):
     id: UUID4 = Field(default_factory=uuid4, primary_key=True)
@@ -58,8 +62,6 @@ class Account(SQLModel, table=True):
 
 
 class Examinee(SQLModel, table=True):
-    # __tablename__ = 'examinees'
-
     id: UUID4 = Field(default_factory=uuid4, primary_key=True)
     first_name: str = Field(nullable=False)
     middle_name: Optional[str] = Field(nullable=True)
@@ -91,3 +93,6 @@ class Examinee(SQLModel, table=True):
 
     # class Config:
     #     arbitrary_types_allowed=True
+
+
+from responses.models import AssessmentResponse  # noqa
