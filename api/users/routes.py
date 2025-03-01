@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from httpx import request
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_session
+from auth.routes import get_current_user
+from .models import User
 from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
@@ -23,13 +25,13 @@ def create_user(user: UserAccountCreate, db: Session = Depends(get_session)):
 
 
 @users_router.get("/", response_model=List[UserRead])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_session)):
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     users = UserService.get_users(db, skip=skip, limit=limit)
     return users
 
 
 @users_router.get("/{id}", response_model=UserRead)
-def read_user(id: UUID4, db: Session = Depends(get_session)):
+def read_user(id: UUID4, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     db_user = UserService.get_user(db, id=id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -37,7 +39,7 @@ def read_user(id: UUID4, db: Session = Depends(get_session)):
 
 
 @users_router.put("/{id}", response_model=UserRead)
-def update_user(id: UUID4, user: UserUpdate, db: Session = Depends(get_session)):
+def update_user(id: UUID4, user: UserUpdate, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     db_user = UserService.update_user(db, id=id, user=user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -45,7 +47,7 @@ def update_user(id: UUID4, user: UserUpdate, db: Session = Depends(get_session))
 
 
 @users_router.delete("/{id}")
-def delete_user(id: UUID4, db: Session = Depends(get_session)):
+def delete_user(id: UUID4, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     success = UserService.delete_user(db, id=id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
