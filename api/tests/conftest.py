@@ -1,7 +1,7 @@
 import pytest
 import sys
 from fastapi.testclient import TestClient
-from datetime import date
+from datetime import date, timedelta
 from typing import AsyncGenerator, Generator
 from httpx import AsyncClient, ASGITransport
 from sqlmodel import Session, SQLModel, create_engine
@@ -204,3 +204,18 @@ def sample_question_response(session: Session, sample_assessment_response: Asses
     session.commit()
     session.refresh(question_response)
     return question_response
+
+
+@pytest.fixture
+def auth_token(sample_user: User) -> str:
+    from auth.services import AuthService
+    access_token = AuthService.create_access_token(
+        data={"sub": sample_user.email},
+        expires_delta=timedelta(minutes=30)
+    )
+    return access_token
+
+
+@pytest.fixture
+def auth_headers(auth_token: str) -> dict:
+    return {"Authorization": f"Bearer {auth_token}"}

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from typing import List
+from auth.services import AuthService
 from database import get_session
 from responses.schemas import (
-    AssessmentResponseCreate, AssessmentResponseCreateParams, AssessmentResponseRead,
-    AssessmentResponseReadWithQuestions
+    AssessmentResponseCreate, AssessmentResponseCreateParams, AssessmentResponseRead
 )
 from .models import Assessment, Question, ScoringMethod
 from .schemas import (
@@ -12,14 +12,20 @@ from .schemas import (
     QuestionCreate, QuestionRead,
     QuestionUpdate,
 )
+from auth.decorators import requires_auth
 
 assessments_router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
 # Assessment endpoints
 
+# Protected endpoint - requires authentication
 @assessments_router.post("/", response_model=AssessmentRead)
-async def create_assessment(assessment: AssessmentCreate, session: Session = Depends(get_session)):
+async def create_assessment(
+    assessment: AssessmentCreate,
+    session: Session = Depends(get_session),
+    token=None
+):
     # Validate custom scoring requirements
     if assessment.scoring_method == ScoringMethod.CUSTOM:
         if assessment.min_value is None or assessment.max_value is None:
@@ -39,12 +45,15 @@ async def create_assessment(assessment: AssessmentCreate, session: Session = Dep
     return db_assessment
 
 
+# Protected endpoint - requires authentication
 @assessments_router.get("/", response_model=List[AssessmentRead])
-async def list_assessments(session: Session = Depends(get_session)):
+@requires_auth
+async def list_assessments(session: Session = Depends(get_session), token=None):
     assessments = session.exec(select(Assessment)).all()
     return assessments
 
 
+# Public endpoint - no authentication required
 @assessments_router.get("/{assessment_id}", response_model=AssessmentRead)
 async def get_assessment(assessment_id: int, session: Session = Depends(get_session)):
     assessment = session.get(Assessment, assessment_id)
@@ -53,11 +62,14 @@ async def get_assessment(assessment_id: int, session: Session = Depends(get_sess
     return assessment
 
 
+# Protected endpoint - requires authentication
 @assessments_router.put("/{assessment_id}", response_model=AssessmentRead)
+@requires_auth
 async def update_assessment(
     assessment_id: int,
     assessment_update: AssessmentCreate,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    token=None
 ):
     db_assessment = session.get(Assessment, assessment_id)
     if not db_assessment:
@@ -73,8 +85,10 @@ async def update_assessment(
     return db_assessment
 
 
+# Protected endpoint - requires authentication
 @assessments_router.delete("/{assessment_id}")
-async def delete_assessment(assessment_id: int, session: Session = Depends(get_session)):
+@requires_auth
+async def delete_assessment(assessment_id: int, session: Session = Depends(get_session), token=None):
     assessment = session.get(Assessment, assessment_id)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
@@ -83,14 +97,15 @@ async def delete_assessment(assessment_id: int, session: Session = Depends(get_s
     session.commit()
     return {"message": "Assessment deleted"}
 
-# Question endpoints
+# Question endpoints - all protected
 
 
 @assessments_router.post("/{assessment_id}/questions", response_model=QuestionRead)
+@requires_auth
 async def create_question(
     assessment_id: int,
     question: QuestionCreate,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     db_assessment = session.get(Assessment, assessment_id)
     if not db_assessment:
@@ -113,7 +128,8 @@ async def create_question(
 
 
 @assessments_router.get("/{assessment_id}/questions", response_model=List[QuestionRead])
-async def list_questions(assessment_id: int, session: Session = Depends(get_session)):
+@requires_auth
+async def list_questions(assessment_id: int, session: Session = Depends(get_session), token=None):
     questions = session.exec(
         select(Question).where(Question.assessment_id == assessment_id)
     ).all()
@@ -121,10 +137,11 @@ async def list_questions(assessment_id: int, session: Session = Depends(get_sess
 
 
 @assessments_router.get("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
+@requires_auth
 async def get_question(
     assessment_id: int,
     question_id: int,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     question = session.exec(
         select(Question)
@@ -137,11 +154,12 @@ async def get_question(
 
 
 @assessments_router.put("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
+@requires_auth
 async def update_question(
     assessment_id: int,
     question_id: int,
     question_update: QuestionUpdate,  # Changed from QuestionCreate to QuestionUpdate
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     # Get existing question
     question = session.exec(
@@ -163,10 +181,11 @@ async def update_question(
 
 
 @assessments_router.delete("/{assessment_id}/questions/{question_id}")
+@requires_auth
 async def delete_question(
     assessment_id: int,
     question_id: int,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     question = session.exec(
         select(Question)
@@ -184,10 +203,11 @@ async def delete_question(
 
 
 @assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
+@requires_auth
 async def create_assessment_response(
     assessment_id: int,
     assessment_response_params: AssessmentResponseCreateParams,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     from users.models import Examinee
     from responses.services import AssessmentResponseService
