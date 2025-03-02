@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
-
+from auth.decorators import requires_auth
 from assessments.schemas import AssessmentRead
-from .models import ResponseStatus
 from .schemas import (
     AssessmentResponseRead,
     AssessmentResponseReadWithAssessment,
@@ -24,9 +23,11 @@ async def get_query_params(request: Request):
 
 
 @responses_router.get("/", response_model=list[AssessmentResponseReadWithAssessment])
+@requires_auth
 async def get_assessment_responses(
     session: Session = Depends(get_session),
-    query_params: dict = Depends(get_query_params)
+    query_params: dict = Depends(get_query_params),
+    token=None
 ):
     if 'examinee' in query_params:
         assessment_responses = AssessmentResponseService.get_assessment_responses_by_examinee(
@@ -51,10 +52,12 @@ async def get_assessment_responses(
 
 
 @responses_router.patch("/{response_id}/change-status", response_model=AssessmentResponseRead)
+@requires_auth
 async def change_status(
     response_id: str,
     status_update: AssessmentResponseUpdate,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    token=None
 ):
     assessment_response = AssessmentResponseService.get_assessment_response(
         session, response_id)
@@ -69,10 +72,12 @@ async def change_status(
 
 
 @responses_router.put("/{response_id}", response_model=AssessmentResponseRead)
+@requires_auth
 async def create_bulk_responses(
     response_id: str,
     bulk_response: BulkQuestionResponseCreate,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    token=None
 ):
     assessment_response = AssessmentResponseService.get_assessment_response(
         session, response_id)
@@ -87,9 +92,11 @@ async def create_bulk_responses(
 
 
 @responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions)
+@requires_auth
 async def get_bulk_responses(
     response_id: str,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    token=None
 ):
     response_dict = AssessmentResponseService.get_assessment_response(
         session, response_id)

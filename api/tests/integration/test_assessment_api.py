@@ -4,49 +4,56 @@ from users.models import Examinee
 from assessments.models import Assessment
 
 
-async def test_create_assessment(async_client: AsyncClient):
-    response = await async_client.post("/assessments/", json={
-        "title": "Test Assessment",
-        "description": "Test Description",
-        "scoring_method": "boolean",
-        "min_value": 0,
-        "max_value": 1
-    })
+async def test_create_assessment(async_client: AsyncClient, auth_headers: dict):
+    response = await async_client.post("/assessments/",
+                                       headers=auth_headers,
+                                       json={
+                                           "title": "Test Assessment",
+                                           "description": "Test Description",
+                                           "scoring_method": "boolean",
+                                           "min_value": 0,
+                                           "max_value": 1
+                                       }
+                                       )
     assert response.status_code == 200
     data = response.json()
     assert data["title"] == "Test Assessment"
     assert data["scoring_method"] == "boolean"
 
 
-async def test_create_assessment_with_default_values(async_client: AsyncClient):
-    response = await async_client.post("/assessments/", json={
-        "title": "Test Assessment",
-        "scoring_method": "boolean"
-    })
+async def test_create_assessment_with_default_values(async_client: AsyncClient, auth_headers: dict):
+    response = await async_client.post("/assessments/",
+                                       headers=auth_headers,
+                                       json={
+                                           "title": "Test Assessment",
+                                           "scoring_method": "boolean"
+                                       }
+                                       )
     assert response.status_code == 200
     data = response.json()
     assert data["min_value"] == 0
     assert data["max_value"] == 1
 
 
-async def test_list_assessments(async_client: AsyncClient, sample_assessment: Assessment):
-    response = await async_client.get("/assessments/")
+async def test_list_assessments(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
+    response = await async_client.get("/assessments/", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
     assert data[0]["title"] == sample_assessment.title
 
 
-async def test_get_assessment(async_client: AsyncClient, sample_assessment: Assessment):
-    response = await async_client.get(f"/assessments/{sample_assessment.id}")
+async def test_get_assessment(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
+    response = await async_client.get(f"/assessments/{sample_assessment.id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["title"] == sample_assessment.title
 
 
-async def test_update_assessment(async_client: AsyncClient, sample_assessment: Assessment):
+async def test_update_assessment(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
     response = await async_client.put(
         f"/assessments/{sample_assessment.id}",
+        headers=auth_headers,
         json={
             "title": "Updated Assessment",
             "description": "Updated Description",
@@ -60,18 +67,19 @@ async def test_update_assessment(async_client: AsyncClient, sample_assessment: A
     assert data["title"] == "Updated Assessment"
 
 
-async def test_delete_assessment(async_client: AsyncClient, sample_assessment: Assessment):
-    response = await async_client.delete(f"/assessments/{sample_assessment.id}")
+async def test_delete_assessment(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
+    response = await async_client.delete(f"/assessments/{sample_assessment.id}", headers=auth_headers)
     assert response.status_code == 200
 
     # Verify deletion
-    response = await async_client.get(f"/assessments/{sample_assessment.id}")
+    response = await async_client.get(f"/assessments/{sample_assessment.id}", headers=auth_headers)
     assert response.status_code == 404
 
 
-async def test_create_question(async_client: AsyncClient, sample_assessment: Assessment):
+async def test_create_question(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
     response = await async_client.post(
         f"/assessments/{sample_assessment.id}/questions",
+        headers=auth_headers,
         json={
             "text": "Test Question",
             "order": 1,
@@ -87,18 +95,22 @@ async def test_create_question(async_client: AsyncClient, sample_assessment: Ass
     assert len(data["choices"]) == 2
 
 
-async def test_create_assessment_with_invalid_scoring(async_client: AsyncClient):
+async def test_create_assessment_with_invalid_scoring(async_client: AsyncClient, auth_headers: dict):
     # For custom scoring, we should expect a 422 error when min/max values are missing
-    response = await async_client.post("/assessments/", json={
-        "title": "Test Assessment",
-        "scoring_method": "custom"  # Custom requires min/max values
-    })
+    response = await async_client.post("/assessments/",
+                                       headers=auth_headers,
+                                       json={
+                                           "title": "Test Assessment",
+                                           "scoring_method": "custom"  # Custom requires min/max values
+                                       }
+                                       )
     assert response.status_code == 422  # Changed to expect validation error
 
 
-async def test_create_question_invalid_data(async_client: AsyncClient, sample_assessment: Assessment):
+async def test_create_question_invalid_data(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
     response = await async_client.post(
         f"/assessments/{sample_assessment.id}/questions",
+        headers=auth_headers,
         json={
             "text": "Test Question",
             "order": 1,
@@ -108,10 +120,11 @@ async def test_create_question_invalid_data(async_client: AsyncClient, sample_as
     assert response.status_code == 422
 
 
-async def test_assessment_response_workflow(async_client: AsyncClient, sample_assessment: Assessment, sample_examinee: Examinee):
+async def test_assessment_response_workflow(async_client: AsyncClient, sample_assessment: Assessment, sample_examinee: Examinee, auth_headers: dict):
     # Create a question first with proper data
     question_response = await async_client.post(
         f"/assessments/{sample_assessment.id}/questions",
+        headers=auth_headers,
         json={
             "text": "Test Question",
             "order": 1,
@@ -128,6 +141,7 @@ async def test_assessment_response_workflow(async_client: AsyncClient, sample_as
     # Create assessment response with initial status
     response = await async_client.post(
         f"/assessments/{sample_assessment.id}/responses",
+        headers=auth_headers,
         json={"examinee_id": str(sample_examinee.id)}
     )
     assert response.status_code == 200
@@ -136,6 +150,7 @@ async def test_assessment_response_workflow(async_client: AsyncClient, sample_as
     # Submit responses with proper structure
     # bulk_response = await async_client.put(
     #     f"/assessments/responses/{response_id}",
+    #     headers=auth_headers,
     #     json={
     #         "question_responses": [
     #             {

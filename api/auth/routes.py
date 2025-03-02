@@ -1,64 +1,27 @@
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlmodel import Session
 from users.services import UserService
 from database import get_session
-from .schemas import TokenData, LoginResponse, TokenResponse, RefreshRequest
+from .decorators import requires_auth
+from .schemas import LoginResponse, TokenResponse, RefreshRequest
 from .services import AuthService, ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from .security import oauth2_scheme
+
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_session)
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    if AuthService.is_token_blacklisted(db, token):
-        raise credentials_exception
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        exp: int = payload.get("exp")
-
-        if email is None:
-            raise credentials_exception
-
-        # Check if token has expired
-        if datetime.utcfromtimestamp(exp) < datetime.utcnow():
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        token_data = TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
-
-    from users.services import UserService
-    user = UserService.get_user_by_email(db, email=token_data.email)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
+# Public endpoint - no authentication required
 @auth_router.post("/token", response_model=LoginResponse)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_session)
+    session: Session = Depends(get_session)
 ):
     user = AuthService.authenticate_user(
-        db, form_data.username, form_data.password)
+        session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -77,15 +40,16 @@ async def login_for_access_token(
     }
 
 
+# Protected endpoint - requires authentication
 @auth_router.post("/logout")
+@requires_auth
 async def logout(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         expires_at = datetime.fromtimestamp(payload.get("exp"))
-        AuthService.blacklist_token(db, token, expires_at)
+        AuthService.blacklist_token(session, token, expires_at)
         return {"message": "Successfully logged out"}
     except JWTError:
         raise HTTPException(
@@ -94,10 +58,12 @@ async def logout(
         )
 
 
+# Protected endpoint - requires authentication
 @auth_router.post("/refresh", response_model=TokenResponse)
+@requires_auth
 async def refresh_token(
     refresh_token: RefreshRequest,
-    db: Session = Depends(get_session)
+    session: Session = Depends(get_session), token=None
 ):
     try:
         payload = jwt.decode(refresh_token.refresh_token,
@@ -111,7 +77,7 @@ async def refresh_token(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        user = UserService.get_user_by_email(db, email=email)
+        user = UserService.get_user_by_email(session, email=email)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
