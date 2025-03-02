@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import { Dropdown } from '@/components/ui/Dropdown';
 import {
     Disclosure,
@@ -14,11 +15,11 @@ const user = {
         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 };
 const navigation = [
-    { name: 'Assessments', href: '/assessments', current: true },
-    { name: 'Examinees', href: '/examinees', current: false },
-    { name: 'Users', href: '/users', current: false },
-    { name: 'Calendar', href: '#', current: false },
-    { name: 'Reports', href: '#', current: false },
+    { name: 'Assessments', href: '/assessments' },
+    { name: 'Examinees', href: '/examinees' },
+    { name: 'Users', href: '/users' },
+    { name: 'Calendar', href: '#' },
+    { name: 'Reports', href: '#' },
 ];
 const userNavigation = [
     { label: 'Your Profile', value: '#' },
@@ -27,6 +28,11 @@ const userNavigation = [
 ];
 
 export function NavBar() {
+    const location = useLocation();
+    const currentPath = location.pathname.split('/')[1];
+
+    const isCurrent = (href: string) => href.split('/')[1] === currentPath;
+
     return (
         <Disclosure as="nav" className="bg-gray-800">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -46,10 +52,12 @@ export function NavBar() {
                                         key={item.name}
                                         href={item.href}
                                         aria-current={
-                                            item.current ? 'page' : undefined
+                                            isCurrent(item.href)
+                                                ? 'page'
+                                                : undefined
                                         }
                                         className={classNames(
-                                            item.current
+                                            isCurrent(item.href)
                                                 ? 'bg-gray-900 text-white'
                                                 : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                             'rounded-md px-3 py-2 text-sm font-medium',
@@ -112,9 +120,11 @@ export function NavBar() {
                             key={item.name}
                             as="a"
                             href={item.href}
-                            aria-current={item.current ? 'page' : undefined}
+                            aria-current={
+                                isCurrent(item.href) ? 'page' : undefined
+                            }
                             className={classNames(
-                                item.current
+                                isCurrent(item.href)
                                     ? 'bg-gray-900 text-white'
                                     : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                 'block rounded-md px-3 py-2 text-base font-medium',
