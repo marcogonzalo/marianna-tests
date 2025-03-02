@@ -1,12 +1,12 @@
 import { useLocation } from 'react-router-dom';
-import { Dropdown } from '@/components/ui/Dropdown';
+import classNames from 'classnames';
 import {
     Disclosure,
     DisclosureButton,
     DisclosurePanel,
 } from '@headlessui/react';
 import { BellIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import classNames from 'classnames';
+import { Dropdown } from '@/components/ui/Dropdown';
 
 const user = {
     name: 'Tom Cook',
@@ -24,7 +24,7 @@ const navigation = [
 const userNavigation = [
     { label: 'Your Profile', value: '#' },
     { label: 'Settings', value: '#' },
-    { label: 'Sign out', value: '#' },
+    { label: 'Sign out', value: '/logout' },
 ];
 
 export function NavBar() {
@@ -171,6 +171,17 @@ export function NavBar() {
                                 {item.label}
                             </DisclosureButton>
                         ))}
+                        {userNavigation.length > 0 && (
+                            <DisclosureButton
+                                key={'Sign out'}
+                                as="a"
+                                href="#"
+                                onClick={() => {}}
+                                className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
+                            >
+                                Sign out
+                            </DisclosureButton>
+                        )}
                     </div>
                 </div>
             </DisclosurePanel>

@@ -10,7 +10,8 @@ import ExamineePage from './pages/ExamineePage';
 import PublicAssessmentResponsePage from './pages/public/PublicAssessmentResponsePage';
 import PrivateLayout from './layouts/PrivateLayout';
 import PublicLayout from './layouts/PublicLayout';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/public/LoginPage';
+import LogoutPage from './pages/public/LogoutPage';
 
 const router = createBrowserRouter([
     {
@@ -64,6 +65,10 @@ const router = createBrowserRouter([
             {
                 path: '/private-response/:responseId',
                 element: <PublicAssessmentResponsePage />,
+            },
+            {
+                path: '/logout',
+                element: <LogoutPage />,
             },
         ],
     },
