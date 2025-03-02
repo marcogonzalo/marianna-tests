@@ -1,11 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode,
-} from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { User } from '../features/auth/types/client';
 import {
     login as performLogin,
@@ -22,8 +16,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+    const storedToken = sessionStorage.getItem('token');
+    const storedUser = sessionStorage.getItem('user');
+
+    const [token, setToken] = useState<string | null>(storedToken);
+    const [user, setUser] = useState<User | null>(
+        storedUser ? JSON.parse(storedUser) : null,
+    );
 
     const storeToken = (token: string | null) => {
         console.log(token);
@@ -37,15 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user === null) sessionStorage.removeItem('user');
         else sessionStorage.setItem('user', JSON.stringify(user));
     };
-
-    useEffect(() => {
-        const storedToken = sessionStorage.getItem('token');
-        const storedUser = sessionStorage.getItem('user');
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser!));
-        }
-    }, []);
 
     const login = async (email: string, password: string) => {
         const response = await performLogin({
