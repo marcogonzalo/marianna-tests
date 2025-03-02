@@ -91,24 +91,21 @@ async def get_bulk_responses(
     response_id: str,
     session: Session = Depends(get_session)
 ):
-    assessment_response = AssessmentResponseService.get_assessment_response(
+    response_dict = AssessmentResponseService.get_assessment_response(
         session, response_id)
 
-    # Convert the main response to a dictionary
-    response_dict = assessment_response.model_dump()
-
     # Handle nested assessment validation
-    if assessment_response.assessment:
-        assessment_dict = assessment_response.assessment.model_dump()
+    if 'assessment' in response_dict:
+        assessment_dict = response_dict['assessment']
         response_dict['assessment'] = AssessmentRead.model_validate(
             assessment_dict)
 
-    if assessment_response.assessment:
-        question_responses_dict = assessment_response.question_responses
+    if 'question_responses' in response_dict:
+        question_responses_dict = response_dict['question_responses']
         validated_question_responses = []
         for question_response in question_responses_dict:
             validated_question_responses.append(QuestionResponseRead.model_validate(
-                question_response.model_dump()))
+                question_response))
         response_dict['question_responses'] = validated_question_responses
 
     # Validate the complete response
