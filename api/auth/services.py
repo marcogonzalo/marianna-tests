@@ -118,6 +118,7 @@ class AuthService:
     async def get_current_active_user(
         current_user=Depends(get_current_user)
     ):
-        if current_user.deleted_at is not None:
+        user = await current_user
+        if user.deleted_at is not None:
             raise HTTPException(status_code=400, detail="Inactive user")
-        return current_user
+        return user

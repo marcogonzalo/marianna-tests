@@ -12,7 +12,6 @@ from .schemas import (
     QuestionCreate, QuestionRead,
     QuestionUpdate,
 )
-from auth.decorators import requires_auth
 
 assessments_router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -23,8 +22,7 @@ assessments_router = APIRouter(prefix="/assessments", tags=["assessments"])
 @assessments_router.post("/", response_model=AssessmentRead)
 async def create_assessment(
     assessment: AssessmentCreate,
-    session: Session = Depends(get_session),
-    token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     # Validate custom scoring requirements
     if assessment.scoring_method == ScoringMethod.CUSTOM:
@@ -47,8 +45,7 @@ async def create_assessment(
 
 # Protected endpoint - requires authentication
 @assessments_router.get("/", response_model=List[AssessmentRead])
-@requires_auth
-async def list_assessments(session: Session = Depends(get_session), token=None):
+async def list_assessments(session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     assessments = session.exec(select(Assessment)).all()
     return assessments
 
@@ -64,12 +61,10 @@ async def get_assessment(assessment_id: int, session: Session = Depends(get_sess
 
 # Protected endpoint - requires authentication
 @assessments_router.put("/{assessment_id}", response_model=AssessmentRead)
-@requires_auth
 async def update_assessment(
     assessment_id: int,
     assessment_update: AssessmentCreate,
-    session: Session = Depends(get_session),
-    token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     db_assessment = session.get(Assessment, assessment_id)
     if not db_assessment:
@@ -87,8 +82,7 @@ async def update_assessment(
 
 # Protected endpoint - requires authentication
 @assessments_router.delete("/{assessment_id}")
-@requires_auth
-async def delete_assessment(assessment_id: int, session: Session = Depends(get_session), token=None):
+async def delete_assessment(assessment_id: int, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     assessment = session.get(Assessment, assessment_id)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
@@ -101,11 +95,10 @@ async def delete_assessment(assessment_id: int, session: Session = Depends(get_s
 
 
 @assessments_router.post("/{assessment_id}/questions", response_model=QuestionRead)
-@requires_auth
 async def create_question(
     assessment_id: int,
     question: QuestionCreate,
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     db_assessment = session.get(Assessment, assessment_id)
     if not db_assessment:
@@ -128,8 +121,7 @@ async def create_question(
 
 
 @assessments_router.get("/{assessment_id}/questions", response_model=List[QuestionRead])
-@requires_auth
-async def list_questions(assessment_id: int, session: Session = Depends(get_session), token=None):
+async def list_questions(assessment_id: int, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     questions = session.exec(
         select(Question).where(Question.assessment_id == assessment_id)
     ).all()
@@ -137,11 +129,10 @@ async def list_questions(assessment_id: int, session: Session = Depends(get_sess
 
 
 @assessments_router.get("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
-@requires_auth
 async def get_question(
     assessment_id: int,
     question_id: int,
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     question = session.exec(
         select(Question)
@@ -154,12 +145,11 @@ async def get_question(
 
 
 @assessments_router.put("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
-@requires_auth
 async def update_question(
     assessment_id: int,
     question_id: int,
     question_update: QuestionUpdate,  # Changed from QuestionCreate to QuestionUpdate
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     # Get existing question
     question = session.exec(
@@ -181,11 +171,10 @@ async def update_question(
 
 
 @assessments_router.delete("/{assessment_id}/questions/{question_id}")
-@requires_auth
 async def delete_question(
     assessment_id: int,
     question_id: int,
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     question = session.exec(
         select(Question)
@@ -203,11 +192,10 @@ async def delete_question(
 
 
 @assessments_router.post("/{assessment_id}/responses", response_model=AssessmentResponseRead)
-@requires_auth
 async def create_assessment_response(
     assessment_id: int,
     assessment_response_params: AssessmentResponseCreateParams,
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     from users.models import Examinee
     from responses.services import AssessmentResponseService
