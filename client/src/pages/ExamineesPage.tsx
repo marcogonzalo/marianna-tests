@@ -19,8 +19,8 @@ export default function ExamineesPage() {
                 setExaminees(data);
                 setError(null);
             } catch (err) {
-                setError('Failed to load users');
-                console.error('Error loading users:', err);
+                setError('Failed to load examinees');
+                console.error('Error loading examinees:', err);
             } finally {
                 setLoading(false);
             }

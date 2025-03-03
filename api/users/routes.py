@@ -4,7 +4,7 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_session
-from auth.decorators import requires_auth
+from auth.services import AuthService
 from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
@@ -16,8 +16,7 @@ examinees_router = APIRouter(prefix="/examinees", tags=["examinees"])
 
 
 @users_router.post("/", response_model=UserRead)
-@requires_auth
-def create_user(user: UserAccountCreate, session: Session = Depends(get_session), token=None):
+def create_user(user: UserAccountCreate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_user = UserService.get_user_by_email(session, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -25,15 +24,13 @@ def create_user(user: UserAccountCreate, session: Session = Depends(get_session)
 
 
 @users_router.get("/", response_model=List[UserRead])
-@requires_auth
-def read_users(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), token=None):
+def read_users(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     users = UserService.get_users(session, skip=skip, limit=limit)
     return users
 
 
 @users_router.get("/{id}", response_model=UserRead)
-@requires_auth
-def read_user(id: UUID4, session: Session = Depends(get_session), token=None):
+def read_user(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_user = UserService.get_user(session, id=id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -41,8 +38,7 @@ def read_user(id: UUID4, session: Session = Depends(get_session), token=None):
 
 
 @users_router.put("/{id}", response_model=UserRead)
-@requires_auth
-def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_session), token=None):
+def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_user = UserService.update_user(session, id=id, user=user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -50,8 +46,7 @@ def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_sess
 
 
 @users_router.delete("/{id}")
-@requires_auth
-def delete_user(id: UUID4, session: Session = Depends(get_session), token=None):
+def delete_user(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     success = UserService.delete_user(session, id=id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
@@ -67,21 +62,18 @@ def delete_user(id: UUID4, session: Session = Depends(get_session), token=None):
 
 
 @accounts_router.post("/", response_model=AccountRead)
-@requires_auth
-def create_account(account: AccountCreate, user_id: UUID4, session: Session = Depends(get_session), token=None):
+def create_account(account: AccountCreate, user_id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     return AccountService.create_account(session=session, account=account, user_id=user_id)
 
 
 @accounts_router.get("/", response_model=List[AccountRead])
-@requires_auth
-def read_accounts(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), token=None):
+def read_accounts(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     accounts = AccountService.get_accounts(session, skip=skip, limit=limit)
     return accounts
 
 
 @accounts_router.get("/{id}", response_model=AccountRead)
-@requires_auth
-def read_account(id: UUID4, session: Session = Depends(get_session), token=None):
+def read_account(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_account = AccountService.get_account(session, id=id)
     if db_account is None:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -89,8 +81,7 @@ def read_account(id: UUID4, session: Session = Depends(get_session), token=None)
 
 
 @accounts_router.put("/{id}", response_model=AccountRead)
-@requires_auth
-def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends(get_session), token=None):
+def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_account = AccountService.update_account(session, id=id, account=account)
     if db_account is None:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -98,8 +89,7 @@ def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends
 
 
 @accounts_router.delete("/{id}")
-@requires_auth
-def delete_account(id: UUID4, session: Session = Depends(get_session), token=None):
+def delete_account(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     success = AccountService.delete_account(session, id=id)
     if not success:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -107,14 +97,12 @@ def delete_account(id: UUID4, session: Session = Depends(get_session), token=Non
 
 
 @examinees_router.post("/", response_model=ExamineeRead)
-@requires_auth
-def create_examinee(examinee: ExamineeCreate, session: Session = Depends(get_session), token=None):
+def create_examinee(examinee: ExamineeCreate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     return ExamineeService.create_examinee(session, examinee)
 
 
 @examinees_router.get("/{id}", response_model=ExamineeRead)
-@requires_auth
-def get_examinee(id: UUID4, session: Session = Depends(get_session), token=None):
+def get_examinee(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     examinee = ExamineeService.get_examinee(session, id)
     if not examinee:
         raise HTTPException(status_code=404, detail="Examinee not found")
@@ -122,14 +110,12 @@ def get_examinee(id: UUID4, session: Session = Depends(get_session), token=None)
 
 
 @examinees_router.get("/", response_model=list[ExamineeRead])
-@requires_auth
-def get_examinees(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), token=None):
+def get_examinees(skip: int = 0, limit: int = 100, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     return ExamineeService.get_examinees(session, skip, limit)
 
 
 @examinees_router.put("/{id}", response_model=ExamineeRead)
-@requires_auth
-def update_examinee(id: UUID4, examinee: ExamineeUpdate, session: Session = Depends(get_session), token=None):
+def update_examinee(id: UUID4, examinee: ExamineeUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     updated_examinee = ExamineeService.update_examinee(session, id, examinee)
     if not updated_examinee:
         raise HTTPException(status_code=404, detail="Examinee not found")
@@ -137,8 +123,7 @@ def update_examinee(id: UUID4, examinee: ExamineeUpdate, session: Session = Depe
 
 
 @examinees_router.delete("/{id}", response_model=dict)
-@requires_auth
-def soft_delete_examinee(id: UUID4, session: Session = Depends(get_session), token=None):
+def soft_delete_examinee(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     if request.query_params.get("hard_delete"):
         success = ExamineeService.hard_delete_examinee(session, id)
     else:

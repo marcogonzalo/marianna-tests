@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
-from auth.decorators import requires_auth
+from responses.models import ResponseStatus
+from auth.services import AuthService
+from auth.security import oauth2_scheme_optional
 from assessments.schemas import AssessmentRead
 from .schemas import (
     AssessmentResponseRead,
@@ -23,11 +25,9 @@ async def get_query_params(request: Request):
 
 
 @responses_router.get("/", response_model=list[AssessmentResponseReadWithAssessment])
-@requires_auth
 async def get_assessment_responses(
     session: Session = Depends(get_session),
-    query_params: dict = Depends(get_query_params),
-    token=None
+    query_params: dict = Depends(get_query_params), current_user=Depends(AuthService.get_current_active_user)
 ):
     if 'examinee' in query_params:
         assessment_responses = AssessmentResponseService.get_assessment_responses_by_examinee(
@@ -52,12 +52,10 @@ async def get_assessment_responses(
 
 
 @responses_router.patch("/{response_id}/change-status", response_model=AssessmentResponseRead)
-@requires_auth
 async def change_status(
     response_id: str,
     status_update: AssessmentResponseUpdate,
-    session: Session = Depends(get_session),
-    token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     assessment_response = AssessmentResponseService.get_assessment_response(
         session, response_id)
@@ -72,19 +70,15 @@ async def change_status(
 
 
 @responses_router.put("/{response_id}", response_model=AssessmentResponseRead)
-@requires_auth
 async def create_bulk_responses(
     response_id: str,
     bulk_response: BulkQuestionResponseCreate,
-    session: Session = Depends(get_session),
-    token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     assessment_response = AssessmentResponseService.get_assessment_response(
         session, response_id)
 
     # Create all question responses and calculate the total score
-
-    # Update assessment response status and score
     assessment_response = AssessmentResponseService.create_question_responses_bulk(
         session, assessment_response, bulk_response)
 
@@ -92,14 +86,21 @@ async def create_bulk_responses(
 
 
 @responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions)
-@requires_auth
 async def get_bulk_responses(
     response_id: str,
     session: Session = Depends(get_session),
-    token=None
+    token: str | None = Depends(oauth2_scheme_optional)
 ):
     response_dict = AssessmentResponseService.get_assessment_response(
         session, response_id)
+
+    if response_dict['status'] != ResponseStatus.PENDING:
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required for non-pending responses",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     # Handle nested assessment validation
     if 'assessment' in response_dict:

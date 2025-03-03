@@ -5,7 +5,6 @@ from jose import JWTError, jwt
 from sqlmodel import Session
 from users.services import UserService
 from database import get_session
-from .decorators import requires_auth
 from .schemas import LoginResponse, TokenResponse, RefreshRequest
 from .services import AuthService, ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from .security import oauth2_scheme
@@ -42,9 +41,8 @@ async def login_for_access_token(
 
 # Protected endpoint - requires authentication
 @auth_router.post("/logout")
-@requires_auth
 async def logout(
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), token=Depends(AuthService.get_current_user_from_token)
 ):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -60,10 +58,9 @@ async def logout(
 
 # Protected endpoint - requires authentication
 @auth_router.post("/refresh", response_model=TokenResponse)
-@requires_auth
 async def refresh_token(
     refresh_token: RefreshRequest,
-    session: Session = Depends(get_session), token=None
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     try:
         payload = jwt.decode(refresh_token.refresh_token,
