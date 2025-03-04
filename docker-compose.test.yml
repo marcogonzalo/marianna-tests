@@ -27,15 +27,15 @@ services:
       context: ./api
       target: api-test
     volumes:
-      - ./api:/app
-      - /app/.venv/
+      - ./api:/api
+      - /api/.venv/
     env_file:
       - ./api/.env
     environment:
       PYTHONDONTWRITEBYTECODE: 1
       PYTHONUNBUFFERED: 1
       DATABASE_URL: "postgresql://postgres:postgres@db-test:5432/test_db"
-      PYTHONPATH: /app
+      PYTHONPATH: /api
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: test_db
