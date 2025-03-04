@@ -10,7 +10,7 @@ from utils.password import verify_password
 
 class User(SQLModel, table=True):
     id: UUID4 = Field(default_factory=uuid4, primary_key=True)
-    email: EmailStr = Field(unique=True, nullable=False)
+    email: EmailStr = Field(unique=True, index=True, nullable=False)
     password_hash: str = Field(nullable=False)
     created_at: datetime = Field(
         default_factory=get_current_datetime,
@@ -44,11 +44,13 @@ class User(SQLModel, table=True):
 
 
 class Account(SQLModel, table=True):
-    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
+    id: UUID4 = Field(default_factory=uuid4, unique=True,
+                      index=True, primary_key=True)
     first_name: str = Field(nullable=False)
     last_name: str = Field(nullable=False)
     role: UserRole = Field(nullable=False)
-    user_id: UUID4 = Field(foreign_key="user.id", unique=True, nullable=False)
+    user_id: UUID4 = Field(foreign_key="user.id",
+                           unique=True, index=True, nullable=False)
     created_at: datetime = Field(
         default_factory=get_current_datetime,
         sa_type=DateTime(timezone=True)
@@ -62,7 +64,8 @@ class Account(SQLModel, table=True):
 
 
 class Examinee(SQLModel, table=True):
-    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
+    id: UUID4 = Field(default_factory=uuid4, unique=True,
+                      index=True, primary_key=True)
     first_name: str = Field(nullable=False)
     middle_name: Optional[str] = Field(nullable=True)
     last_name: str = Field(nullable=False)

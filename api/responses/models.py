@@ -23,7 +23,7 @@ def _generate_assessment_response_id(examinee_id: UUID4, assessment_id: int) -> 
 
 
 class AssessmentResponse(SQLModel, table=True):
-    id: str = Field(default=None, primary_key=True)
+    id: str = Field(default=None, unique=True, index=True, primary_key=True)
     status: ResponseStatus = Field(default=ResponseStatus.PENDING)
     score: Optional[float] = None
     created_at: datetime = Field(
@@ -40,7 +40,8 @@ class AssessmentResponse(SQLModel, table=True):
 
     # Foreign keys
     assessment_id: int = Field(foreign_key="assessment.id")
-    examinee_id: UUID4 = Field(foreign_key="examinee.id", nullable=False)
+    examinee_id: UUID4 = Field(
+        foreign_key="examinee.id", index=True, nullable=False)
 
     # Relationships
     assessment: Assessment = Relationship(back_populates="responses")

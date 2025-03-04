@@ -16,7 +16,7 @@ class ScoringMethod(str, Enum):
 
 
 class Assessment(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, index=True, primary_key=True)
     title: str
     description: Optional[str] = Field(default=None, sa_type=Text)
     min_value: float
@@ -91,7 +91,7 @@ class Question(SQLModel, table=True):
                 choice_ids: List of choice IDs to delete
                 session: SQLAlchemy session for database operations
     """
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, index=True, primary_key=True)
     text: str
     order: int
     created_at: datetime = Field(
@@ -181,7 +181,7 @@ class Question(SQLModel, table=True):
 
 
 class Choice(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, index=True, primary_key=True)
     text: str
     value: float
     order: int

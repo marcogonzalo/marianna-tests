@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     gcc \
     libpq-dev \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pipenv
@@ -35,16 +36,22 @@ COPY Pipfile Pipfile.lock ./
 FROM base AS api-dev
 RUN pipenv install --dev --system --deploy
 COPY . .
-CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
+COPY scripts/start-dev.sh /start-dev.sh
+RUN chmod +x /start-dev.sh
+CMD ["/start-dev.sh"]
 
 # Test stage
 FROM base AS api-test
 RUN pipenv install --dev --system --deploy
 COPY . .
-CMD ["pytest", "-v"]
+COPY scripts/start-test.sh /start-test.sh
+RUN chmod +x /start-test.sh
+CMD ["/start-test.sh"]
 
 # Production stage
 FROM base AS api-prod
 RUN pipenv install --system --deploy
 COPY . .
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker", "main:app"]
+COPY scripts/start-prod.sh /start-prod.sh
+RUN chmod +x /start-prod.sh
+CMD ["/start-prod.sh"]
