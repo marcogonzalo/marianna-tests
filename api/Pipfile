@@ -12,6 +12,7 @@ psycopg2-binary = "*"
 bcrypt = "==4.0.1"
 slowapi = "==0.1.9"
 python-jose = "3.4.0"
+alembic = "1.14.1"
 
 [dev-packages]
 pytest = "*"
@@ -23,3 +24,4 @@ python_version = "3.13"
 
 [scripts]
 create-admin = "python scripts/create_admin.py"
+db-upgrade = "alembic upgrade head"

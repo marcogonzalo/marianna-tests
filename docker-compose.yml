@@ -16,7 +16,8 @@ services:
     env_file:
       - ./api/.env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - app-network
@@ -28,7 +29,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./client:/usr/local/app
+      - ./client:/usr/local/api
       - /usr/local/app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
@@ -50,6 +51,11 @@ services:
       - ./api/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "assessments"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
