@@ -47,11 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
-        if (token) {
-            await performLogout(token);
+        try {
+            if (token) {
+                await performLogout(token);
+            }
+        } finally {
+            storeToken(null);
+            storeUser(null);
         }
-        storeToken(null);
-        storeUser(null);
     };
 
     return (
