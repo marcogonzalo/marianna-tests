@@ -7,16 +7,12 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./api:/app
-      - /app/.venv/ # This excludes the virtual environment directory
+      - ./api:/api
+      - /api/.venv/ # This excludes the virtual environment directory
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DB_HOST=db
-      - DB_PORT=5432
-      - POSTGRES_DB=assessments
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/assessments
     env_file:
       - ./api/.env
     depends_on:

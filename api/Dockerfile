@@ -27,8 +27,8 @@ RUN apt-get update && apt-get install -y \
 # Install pipenv
 RUN pip install --no-cache-dir pipenv
 
-ENV PYTHONPATH=/app
-WORKDIR /app
+ENV PYTHONPATH=/api
+WORKDIR /api
 COPY Pipfile Pipfile.lock ./
 
 # Development stage
