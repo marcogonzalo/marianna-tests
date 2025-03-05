@@ -7,29 +7,17 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from sqlmodel import SQLModel
 
-from utils.database import get_database_url
+from app.utils.database import get_database_url
 
 
 def import_models():
     """Automatically import all models modules"""
-    # import assessments  # adjust this to your root package
-    # package = assessments
+    import app  # adjust this to your root package
+    package = app
 
-    # for module_info in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
-    #     if 'models' in module_info.name:
-    #         importlib.import_module(module_info.name)
-
-    # List of modules containing SQLModel models
-    MODEL_MODULES = [
-        'assessments.models',
-        'responses.models',
-        'users.models',
-        'auth.models'
-    ]
-
-    # Import all models dynamically
-    for module in MODEL_MODULES:
-        importlib.import_module(module)
+    for module_info in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
+        if 'models' in module_info.name:
+            importlib.import_module(module_info.name)
 
 
 # Import all models before creating metadata

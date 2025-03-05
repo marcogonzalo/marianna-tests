@@ -1,7 +1,8 @@
 import pytest
 from datetime import datetime
-from assessments.models import Assessment, ScoringMethod
+from app.assessments.models import Assessment, ScoringMethod
 from sqlmodel import Session
+
 
 def test_assessment_creation(session: Session):
     assessment = Assessment(
@@ -23,6 +24,7 @@ def test_assessment_creation(session: Session):
     # assert assessment.created_at.tzinfo is not None
     # assert assessment.created_at.tzinfo == timezone.utc
 
+
 def test_assessment_default_values(session: Session):
     assessment = Assessment(
         title="Test Assessment",
@@ -42,6 +44,7 @@ def test_assessment_default_values(session: Session):
     # assert assessment.updated_at.tzinfo is not None
     # assert assessment.updated_at.tzinfo == timezone.utc
 
+
 def test_set_default_values_boolean():
     assessment = Assessment(
         title="Test Assessment",
@@ -52,6 +55,7 @@ def test_set_default_values_boolean():
     assessment.set_default_values()
     assert assessment.min_value == 0
     assert assessment.max_value == 1
+
 
 def test_set_default_values_scored():
     assessment = Assessment(
@@ -64,6 +68,7 @@ def test_set_default_values_scored():
     assert assessment.min_value == -1
     assert assessment.max_value == 1
 
+
 def test_set_default_values_custom():
     assessment = Assessment(
         title="Test Assessment",
@@ -73,6 +78,7 @@ def test_set_default_values_custom():
     )
     with pytest.raises(ValueError, match="Custom scoring method requires explicit min_value and max_value"):
         assessment.set_default_values()
+
 
 def test_assessment_relationships(session: Session):
     assessment = Assessment(
@@ -89,6 +95,7 @@ def test_assessment_relationships(session: Session):
     assert hasattr(assessment, 'responses')
     assert isinstance(assessment.questions, list)
     assert isinstance(assessment.responses, list)
+
 
 def test_assessment_invalid_custom_scoring():
     assessment = Assessment(

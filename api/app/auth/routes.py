@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlmodel import Session
-from users.services import UserService
+from app.users.services import UserService
 from database import get_session
 from .schemas import LoginResponse, TokenResponse, RefreshRequest
 from .services import AuthService, ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY

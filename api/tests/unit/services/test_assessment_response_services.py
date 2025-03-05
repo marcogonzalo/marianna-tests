@@ -1,10 +1,10 @@
 import pytest
 from sqlmodel import Session
 from fastapi import HTTPException
-from assessments.models import Assessment
-from users.models import Examinee
-from responses.schemas import AssessmentResponseCreate, AssessmentResponseUpdate
-from responses.services import AssessmentResponseService
+from app.assessments.models import Assessment
+from app.users.models import Examinee
+from app.responses.schemas import AssessmentResponseCreate, AssessmentResponseUpdate
+from app.responses.services import AssessmentResponseService
 
 
 def test_create_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee):

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
-from responses.models import ResponseStatus
-from auth.services import AuthService
-from auth.security import oauth2_scheme_optional
-from assessments.schemas import AssessmentRead
+from app.responses.models import ResponseStatus
+from app.auth.services import AuthService
+from app.auth.security import oauth2_scheme_optional
+from app.assessments.schemas import AssessmentRead
 from .schemas import (
     AssessmentResponseRead,
     AssessmentResponseReadWithAssessment,

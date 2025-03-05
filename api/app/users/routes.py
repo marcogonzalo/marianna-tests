@@ -4,7 +4,7 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_session
-from auth.services import AuthService
+from app.auth.services import AuthService
 from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
 from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate

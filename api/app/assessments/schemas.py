@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import BaseModel, field_validator, Field
 from datetime import datetime, timezone
 from .models import ScoringMethod
-from utils.datetime import get_current_datetime
+from app.utils.datetime import get_current_datetime
 
 
 class ChoiceCreate(BaseModel):

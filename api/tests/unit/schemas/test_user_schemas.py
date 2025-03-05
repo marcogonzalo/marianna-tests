@@ -1,6 +1,7 @@
 import pytest
-from users.schemas import UserCreate, UserRead, AccountCreate, AccountRead
-from users.enums import UserRole
+from app.users.schemas import UserCreate, UserRead, AccountCreate, AccountRead
+from app.users.enums import UserRole
+
 
 def test_user_create_validation():
     # Valid user
@@ -17,6 +18,7 @@ def test_user_create_validation():
             email="invalid_email",
             password="password123"
         )
+
 
 def test_account_create_validation():
     # Valid account

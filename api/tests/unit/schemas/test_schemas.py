@@ -1,10 +1,10 @@
 import pytest
-from assessments.schemas import (
+from app.assessments.schemas import (
     AssessmentCreate,
     QuestionCreate,
     ChoiceCreate
 )
-from assessments.models import ScoringMethod
+from app.assessments.models import ScoringMethod
 
 
 def test_assessment_create_validation():

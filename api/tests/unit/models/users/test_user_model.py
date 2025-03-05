@@ -1,9 +1,10 @@
 from datetime import date, datetime
-from users.schemas import ExamineeCreate, ExamineeUpdate
-from users.models import Examinee, User, Account
-from users.enums import Gender, UserRole
+from app.users.schemas import ExamineeCreate, ExamineeUpdate
+from app.users.models import Examinee, User, Account
+from app.users.enums import Gender, UserRole
 from sqlmodel import Session
-from utils.password import get_password_hash, verify_password
+from app.utils.password import get_password_hash, verify_password
+
 
 def test_user_creation(session: Session):
     user = User(
@@ -20,6 +21,7 @@ def test_user_creation(session: Session):
     assert user.id is not None
     # assert user.created_at.tzinfo is not None
     # assert user.created_at.tzinfo == timezone.utc
+
 
 def test_account_creation(session: Session, sample_user: User):
     account = Account(
@@ -38,6 +40,7 @@ def test_account_creation(session: Session, sample_user: User):
     assert isinstance(account.created_at, datetime)
 #     assert account.created_at.tzinfo == timezone.utc
 #     assert account.user_id == sample_user.id
+
 
 def test_examinee_creation(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
@@ -58,6 +61,7 @@ def test_examinee_creation(session: Session, sample_account: Account):
     assert examinee.id is not None
     assert examinee.first_name == "John"
     assert examinee.last_name == "Doe"
+
 
 def test_examinee_update(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
@@ -92,6 +96,7 @@ def test_examinee_update(session: Session, sample_account: Account):
 
     assert examinee.first_name == "Janet"
 
+
 def test_examinee_deletion(session: Session, sample_account: Account):
     examinee_data = ExamineeCreate(
         first_name="Mark",
@@ -111,5 +116,6 @@ def test_examinee_deletion(session: Session, sample_account: Account):
     session.delete(examinee)
     session.commit()
 
-    deleted_examinee = session.query(Examinee).filter(Examinee.id == examinee.id).first()
+    deleted_examinee = session.query(Examinee).filter(
+        Examinee.id == examinee.id).first()
     assert deleted_examinee is None

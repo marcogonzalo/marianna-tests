@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from contextlib import asynccontextmanager
-from assessments.routes import assessments_router
-from responses.routes import responses_router
-from users.routes import users_router, accounts_router, examinees_router
-from auth.routes import auth_router
-from assessments.models import Assessment, Question, Choice
-from responses.models import AssessmentResponse, QuestionResponse
-from users.models import Account, User
-from auth.models import TokenBlacklist
+from app.assessments.routes import assessments_router
+from app.responses.routes import responses_router
+from app.users.routes import users_router, accounts_router, examinees_router
+from app.auth.routes import auth_router
+from app.assessments.models import Assessment, Question, Choice
+from app.responses.models import AssessmentResponse, QuestionResponse
+from app.users.models import Account, User
+from app.auth.models import TokenBlacklist
 
 CLIENT_URL = os.getenv("CLIENT_URL")
 

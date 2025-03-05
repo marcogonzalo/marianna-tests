@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlmodel import Session, select
 from database import get_session
-from users.models import User
+from app.users.models import User
 from .models import TokenBlacklist
 from .schemas import TokenData
 from .security import oauth2_scheme
@@ -32,7 +32,7 @@ class AuthService:
 
     @staticmethod
     def authenticate_user(session: Session, email: str, password: str) -> Optional[User]:
-        from users.services import UserService
+        from app.users.services import UserService
         user = UserService.get_user_by_email(session, email)
         if not user:
             return None
@@ -101,7 +101,7 @@ class AuthService:
         except JWTError:
             raise credentials_exception
 
-        from users.services import UserService
+        from app.users.services import UserService
         user = UserService.get_user_by_email(session, email=token_data.email)
         if user is None:
             raise credentials_exception

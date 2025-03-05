@@ -4,7 +4,7 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session, joinedload
 from .models import User, Account, Examinee
 from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate, ExamineeCreate, ExamineeRead, ExamineeUpdate
-from utils.password import get_password_hash
+from app.utils.password import get_password_hash
 
 
 class UserService:

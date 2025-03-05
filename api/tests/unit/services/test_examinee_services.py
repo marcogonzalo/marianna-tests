@@ -1,9 +1,9 @@
 import pytest
 from datetime import date
-from users.models import Account
-from users.enums import Gender
-from users.schemas import ExamineeCreate, ExamineeUpdate
-from users.services import ExamineeService
+from app.users.models import Account
+from app.users.enums import Gender
+from app.users.schemas import ExamineeCreate, ExamineeUpdate
+from app.users.services import ExamineeService
 from sqlmodel import Session
 
 

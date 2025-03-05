@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
 from .models import AssessmentResponse, QuestionResponse, ResponseStatus
 from .schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseUpdate, BulkQuestionResponseCreate
-from assessments.models import Assessment, Question
+from app.assessments.models import Assessment, Question
 
 
 class AssessmentResponseService:

@@ -1,9 +1,9 @@
 import pytest
 from datetime import datetime, timedelta
 from jose import jwt
-from auth.services import AuthService, SECRET_KEY, ALGORITHM
-from users.models import User
-from utils.password import get_password_hash
+from app.auth.services import AuthService, SECRET_KEY, ALGORITHM
+from app.users.models import User
+from app.utils.password import get_password_hash
 
 
 def test_create_access_token():

@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
-from users.models import Examinee
-from assessments.models import Assessment
+from app.users.models import Examinee
+from app.assessments.models import Assessment
 
 
 async def test_create_assessment(async_client: AsyncClient, auth_headers: dict):
