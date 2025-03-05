@@ -42,7 +42,7 @@ async def login_for_access_token(
 # Protected endpoint - requires authentication
 @auth_router.post("/logout")
 async def logout(
-    session: Session = Depends(get_session), token=Depends(AuthService.get_current_user_from_token)
+    session: Session = Depends(get_session), token=Depends(oauth2_scheme)
 ):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

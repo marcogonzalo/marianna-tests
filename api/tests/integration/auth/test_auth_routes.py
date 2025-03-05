@@ -78,7 +78,7 @@ def test_logout(client: TestClient, auth_user: User):
     assert protected_response.status_code == 401
 
 
-def test_refresh_token(client: TestClient, auth_user: User):
+def test_refresh_token(client: TestClient, auth_user: User, auth_headers: dict):
     # First login to get initial tokens
     login_response = client.post(
         "/auth/token",
@@ -100,7 +100,8 @@ def test_refresh_token(client: TestClient, auth_user: User):
     # Test token refresh
     response = client.post(
         "/auth/refresh",
-        json={"refresh_token": refresh_token}
+        json={"refresh_token": refresh_token},
+        headers={"Authorization": f"Bearer {refresh_token}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -115,10 +116,11 @@ def test_refresh_token(client: TestClient, auth_user: User):
     assert payload["sub"] == "auth_test@example.com"
 
 
-def test_refresh_token_invalid(client: TestClient):
+def test_refresh_token_invalid(client: TestClient, auth_headers: dict):
     response = client.post(
         "/auth/refresh",
-        json={"refresh_token": "invalid_token"}
+        json={"refresh_token": "invalid_token"},
+        headers=auth_headers
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid refresh token"

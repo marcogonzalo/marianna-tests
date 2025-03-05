@@ -2,49 +2,35 @@ import pytest
 from fastapi.testclient import TestClient
 from app.users.models import User, Account
 from app.users.enums import UserRole
-from sqlmodel import Session
-from datetime import timedelta
-from app.auth.services import AuthService
 
 
-@pytest.fixture
-def auth_token(sample_user: User) -> str:
-    access_token = AuthService.create_access_token(
-        data={"sub": sample_user.email},
-        expires_delta=timedelta(minutes=30)
-    )
-    return access_token
-
-
-@pytest.fixture
-def auth_headers(auth_token: str) -> dict:
-    return {"Authorization": f"Bearer {auth_token}"}
-
-
-def test_create_user(client: TestClient, session: Session):
+def test_create_user(client: TestClient, auth_headers: dict):
     # Creating user doesn't require authentication
     response = client.post(
         "/users/",
-        json={"email": "test@example.com", "password": "password123"},
+        json={"email": "non-existing-user@example.com",
+              "password": "password123"},
+        headers=auth_headers
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == "test@example.com"
+    assert data["email"] == "non-existing-user@example.com"
     assert "id" in data
     assert "created_at" in data
     assert "updated_at" in data
 
 
-def test_create_duplicate_user(client: TestClient, sample_user: User, session: Session):
+def test_create_duplicate_user(client: TestClient, sample_user: User, auth_headers: dict):
     # Creating user doesn't require authentication
     response = client.post(
         "/users/",
         json={"email": sample_user.email, "password": "password123"},
+        headers=auth_headers
     )
     assert response.status_code == 400
 
 
-def test_read_users(client: TestClient, sample_user: User, auth_headers: dict, session: Session):
+def test_read_users(client: TestClient, sample_user: User, auth_headers: dict):
     response = client.get("/users/", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
@@ -53,7 +39,7 @@ def test_read_users(client: TestClient, sample_user: User, auth_headers: dict, s
     assert any(user["email"] == sample_user.email for user in data)
 
 
-def test_create_account(client: TestClient, sample_user: User, auth_headers: dict, session: Session):
+def test_create_account(client: TestClient, sample_user: User, auth_headers: dict):
     response = client.post(
         "/accounts/",
         params={"user_id": sample_user.id},
@@ -71,7 +57,7 @@ def test_create_account(client: TestClient, sample_user: User, auth_headers: dic
     assert data["role"] == UserRole.ASSESSMENT_DEVELOPER.value
 
 
-def test_read_accounts(client: TestClient, sample_account: Account, auth_headers: dict, session: Session):
+def test_read_accounts(client: TestClient, sample_account: Account, auth_headers: dict):
     response = client.get("/accounts/", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
