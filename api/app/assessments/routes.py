@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from typing import List
-from auth.services import AuthService
+from app.auth.services import AuthService
 from database import get_session
-from responses.schemas import (
+from app.responses.schemas import (
     AssessmentResponseCreate, AssessmentResponseCreateParams, AssessmentResponseRead
 )
 from .models import Assessment, Question, ScoringMethod
@@ -197,8 +197,8 @@ async def create_assessment_response(
     assessment_response_params: AssessmentResponseCreateParams,
     session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
-    from users.models import Examinee
-    from responses.services import AssessmentResponseService
+    from app.users.models import Examinee
+    from app.responses.services import AssessmentResponseService
 
     # Verify assessment exists
     assessment = session.get(Assessment, assessment_id)

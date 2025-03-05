@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
-from responses.services import AssessmentResponseService
-from responses.models import AssessmentResponse, QuestionResponse
+from app.responses.services import AssessmentResponseService
+from app.responses.models import AssessmentResponse, QuestionResponse
 from sqlmodel import Session
+
 
 def test_assessment_response_creation(session: Session, sample_assessment, sample_examinee):
     assessment_response = AssessmentResponse(
@@ -20,6 +21,7 @@ def test_assessment_response_creation(session: Session, sample_assessment, sampl
     assert isinstance(assessment_response.created_at, datetime)
     # assert assessment_response.created_at.tzinfo is not None
     # assert assessment_response.created_at.tzinfo == timezone.utc
+
 
 def test_question_response_creation(session: Session, sample_assessment_response):
     question_response = QuestionResponse(
@@ -41,34 +43,42 @@ def test_question_response_creation(session: Session, sample_assessment_response
     # assert question_response.created_at.tzinfo is not None
     # assert question_response.created_at.tzinfo == timezone.utc
 
+
 def test_assessment_response_update(session: Session, sample_assessment_response):
     # Update the status of the assessment response
-    assessment_response = session.get(AssessmentResponse, sample_assessment_response.id)
+    assessment_response = session.get(
+        AssessmentResponse, sample_assessment_response.id)
     assessment_response.status = "completed"
     session.commit()
     session.refresh(assessment_response)
 
     assert assessment_response.status == "completed"
 
+
 def test_question_response_update(session: Session, sample_question_response):
     # Update the numeric value of the question response
-    question_response = session.get(QuestionResponse, sample_question_response.id)
+    question_response = session.get(
+        QuestionResponse, sample_question_response.id)
     question_response.numeric_value = 10.0
     session.commit()
     session.refresh(question_response)
 
     assert question_response.numeric_value == 10.0
 
+
 def test_assessment_response_deletion(session: Session, sample_assessment_response):
     session.delete(sample_assessment_response)
     session.commit()
 
-    deleted_response = session.get(AssessmentResponse, sample_assessment_response.id)
+    deleted_response = session.get(
+        AssessmentResponse, sample_assessment_response.id)
     assert deleted_response is None
+
 
 def test_question_response_deletion(session: Session, sample_question_response):
     session.delete(sample_question_response)
     session.commit()
 
-    deleted_response = session.get(QuestionResponse, sample_question_response.id)
+    deleted_response = session.get(
+        QuestionResponse, sample_question_response.id)
     assert deleted_response is None

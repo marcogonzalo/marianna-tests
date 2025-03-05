@@ -7,10 +7,10 @@ project_root = Path(__file__).parent.parent  # nopep8
 sys.path.append(str(project_root))  # nopep8
 
 from sqlmodel import Session, create_engine, select
-from users.models import User, Account
+from app.users.models import User, Account
 from getpass import getpass
-from users.enums import UserRole
-from utils.password import get_password_hash, validate_password
+from app.users.enums import UserRole
+from app.utils.password import get_password_hash, validate_password
 
 
 def create_admin(engine):

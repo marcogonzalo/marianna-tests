@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime, UTC
-from assessments.models import Question, Choice, Assessment, ScoringMethod
+from app.assessments.models import Question, Choice, Assessment, ScoringMethod
+
 
 def test_question_creation(session):
     # Create an assessment first
@@ -22,6 +23,7 @@ def test_question_creation(session):
     assert question.order == 1
     assert question.assessment_id == assessment.id
 
+
 def test_question_default_values(session):
     # Create an assessment first
     assessment = Assessment(
@@ -41,6 +43,7 @@ def test_question_default_values(session):
     assert isinstance(question.created_at, datetime)
     assert question.created_at.tzinfo == UTC
     assert question.id is None  # Should be None until persisted
+
 
 def test_question_alter_choice_list(session):
     # Create an assessment first
@@ -64,7 +67,7 @@ def test_question_alter_choice_list(session):
     session.commit()
 
     # Create choices using data that mimics ChoiceCreate schema
-    from assessments.schemas import ChoiceCreate
+    from app.assessments.schemas import ChoiceCreate
     choices = [
         ChoiceCreate(text="Choice 1", value=1.0, order=1),
         ChoiceCreate(text="Choice 2", value=0.0, order=2)
@@ -78,6 +81,7 @@ def test_question_alter_choice_list(session):
     assert len(question.choices) == 2
     assert question.choices[0].text == "Choice 1"
     assert question.choices[1].text == "Choice 2"
+
 
 def test_question_update_attributes():
     from pydantic import BaseModel

@@ -1,7 +1,7 @@
 import pytest
-from assessments.schemas import AssessmentRead
-from assessments.models import Assessment
-from responses.schemas import (
+from app.assessments.schemas import AssessmentRead
+from app.assessments.models import Assessment
+from app.responses.schemas import (
     AssessmentResponseCreate,
     AssessmentResponseReadWithQuestions,
     AssessmentResponseUpdate,
@@ -9,7 +9,7 @@ from responses.schemas import (
     QuestionResponseCreate,
     QuestionResponseRead
 )
-from responses.models import ResponseStatus
+from app.responses.models import ResponseStatus
 from pydantic import ValidationError
 from uuid import uuid4
 

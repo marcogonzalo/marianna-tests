@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 from pydantic import BaseModel, EmailStr, UUID4, Field, field_validator
 from typing import Optional
 from .enums import Gender, UserRole
-from utils.datetime import get_current_datetime
+from app.utils.datetime import get_current_datetime
 
 
 class UserCreate(BaseModel):

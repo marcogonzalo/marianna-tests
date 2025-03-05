@@ -1,8 +1,8 @@
 import pytest
 from datetime import date
-from users.models import Account
-from users.schemas import ExamineeCreate, ExamineeUpdate
-from users.enums import Gender
+from app.users.models import Account
+from app.users.schemas import ExamineeCreate, ExamineeUpdate
+from app.users.enums import Gender
 
 
 def test_examinee_create_schema(sample_account: Account):

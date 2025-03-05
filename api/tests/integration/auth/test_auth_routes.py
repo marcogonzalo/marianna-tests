@@ -2,9 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from jose import jwt
 from sqlmodel import Session
-from auth.services import SECRET_KEY, ALGORITHM
-from users.models import User
-from utils.password import get_password_hash
+from app.auth.services import SECRET_KEY, ALGORITHM
+from app.users.models import User
+from app.utils.password import get_password_hash
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ def test_refresh_token(client: TestClient, auth_user: User):
 
     # Create a valid refresh token
     from datetime import timedelta
-    from auth.services import AuthService
+    from app.auth.services import AuthService
     refresh_token = AuthService.create_access_token(
         {"sub": auth_user.email},
         expires_delta=timedelta(days=7)

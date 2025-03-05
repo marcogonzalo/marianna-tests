@@ -4,8 +4,8 @@ from pydantic import UUID4
 from sqlmodel import SQLModel, Field, Relationship, Text, DateTime
 from datetime import datetime, timezone
 from enum import Enum
-from assessments.models import Assessment, Choice
-from utils.datetime import get_current_datetime
+from app.assessments.models import Assessment, Choice
+from app.utils.datetime import get_current_datetime
 
 
 class ResponseStatus(str, Enum):
@@ -95,4 +95,4 @@ class QuestionResponse(SQLModel, table=True):
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
 
 
-from users.models import Examinee  # noqa
+from app.users.models import Examinee  # noqa

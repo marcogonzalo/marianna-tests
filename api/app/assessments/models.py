@@ -3,7 +3,7 @@ from pydantic import UUID4
 from sqlmodel import SQLModel, Field, Relationship, Session, select, Text, DateTime
 from datetime import datetime, timezone
 from enum import Enum
-from utils.datetime import get_current_datetime
+from app.utils.datetime import get_current_datetime
 
 
 class ScoringMethod(str, Enum):

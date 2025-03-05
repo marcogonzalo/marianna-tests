@@ -1,7 +1,7 @@
 import os
 from typing import Generator
 from sqlmodel import SQLModel, Session, create_engine
-from utils.database import get_database_url
+from app.utils.database import get_database_url
 
 # Default to SQLite for development if no DATABASE_URL is provided
 DATABASE_URL = get_database_url()

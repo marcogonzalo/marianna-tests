@@ -4,8 +4,8 @@ from sqlmodel import SQLModel, Field, Relationship, DateTime, Text
 from datetime import date, datetime, timezone
 from uuid import uuid4
 from .enums import Gender, UserRole
-from utils.datetime import get_current_datetime
-from utils.password import verify_password
+from app.utils.datetime import get_current_datetime
+from app.utils.password import verify_password
 
 
 class User(SQLModel, table=True):
@@ -98,4 +98,4 @@ class Examinee(SQLModel, table=True):
     #     arbitrary_types_allowed=True
 
 
-from responses.models import AssessmentResponse  # noqa
+from app.responses.models import AssessmentResponse  # noqa

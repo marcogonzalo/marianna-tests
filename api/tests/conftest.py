@@ -10,12 +10,12 @@ from pathlib import Path
 from database import get_session
 from main import app
 
-from utils.datetime import get_current_datetime
-from utils.password import get_password_hash
-from assessments.models import Assessment, Choice, Question, ScoringMethod
-from responses.models import AssessmentResponse, QuestionResponse
-from users.enums import Gender
-from users.models import Examinee, User, Account
+from app.utils.datetime import get_current_datetime
+from app.utils.password import get_password_hash
+from app.assessments.models import Assessment, Choice, Question, ScoringMethod
+from app.responses.models import AssessmentResponse, QuestionResponse
+from app.users.enums import Gender
+from app.users.models import Examinee, User, Account
 
 # Add the api directory to the Python path
 api_path = str(Path(__file__).parent.parent)
@@ -143,8 +143,8 @@ def sample_user(session: Session) -> User:
 
 @pytest.fixture
 def sample_account(session: Session, sample_user: User) -> Account:
-    from users.models import Account
-    from users.enums import UserRole
+    from app.users.models import Account
+    from app.users.enums import UserRole
 
     account = Account(
         user_id=sample_user.id,
@@ -208,7 +208,7 @@ def sample_question_response(session: Session, sample_assessment_response: Asses
 
 @pytest.fixture
 def auth_token(sample_user: User) -> str:
-    from auth.services import AuthService
+    from app.auth.services import AuthService
     access_token = AuthService.create_access_token(
         data={"sub": sample_user.email},
         expires_delta=timedelta(minutes=30)

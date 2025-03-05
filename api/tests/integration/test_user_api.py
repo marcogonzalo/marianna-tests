@@ -1,10 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
-from users.models import User, Account
-from users.enums import UserRole
+from app.users.models import User, Account
+from app.users.enums import UserRole
 from sqlmodel import Session
 from datetime import timedelta
-from auth.services import AuthService
+from app.auth.services import AuthService
 
 
 @pytest.fixture

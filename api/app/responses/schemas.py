@@ -2,10 +2,10 @@ from typing import Optional, List
 from pydantic import UUID4, BaseModel, field_validator, Field
 from datetime import datetime, timezone
 
-from assessments.schemas import AssessmentBase, AssessmentRead
+from app.assessments.schemas import AssessmentBase, AssessmentRead
 
 from .models import ResponseStatus
-from utils.datetime import get_current_datetime
+from app.utils.datetime import get_current_datetime
 
 
 class AssessmentResponseCreate(BaseModel):
