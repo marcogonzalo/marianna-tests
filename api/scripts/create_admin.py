@@ -2,15 +2,18 @@ import os
 import sys
 from pathlib import Path
 
+
 # Add the project root directory to Python path
 project_root = Path(__file__).parent.parent  # nopep8
 sys.path.append(str(project_root))  # nopep8
 
 from sqlmodel import Session, create_engine, select
-from app.users.models import User, Account
+from app.users.models import User
+from app.users.schemas import UserAccountCreate, AccountCreate
+from app.users.services import UserService
 from getpass import getpass
 from app.users.enums import UserRole
-from app.utils.password import get_password_hash, validate_password
+from app.utils.password import validate_password
 
 
 def create_admin(engine):
@@ -46,25 +49,14 @@ def create_admin(engine):
             return
 
         try:
-            # Create user
-            user = User(
-                email=email,
-                password_hash=get_password_hash(password)
-            )
-            session.add(user)
-            session.flush()  # To get the user.id
+            # Create user and account
+            user = UserService.create_user_account(session, UserAccountCreate(
+                email=email, password=password, account=AccountCreate(
+                    first_name=first_name, last_name=last_name,
+                    role=UserRole.ADMIN)))
 
-            # Create associated account
-            account = Account(
-                first_name=first_name,
-                last_name=last_name,
-                role=UserRole.ADMIN,
-                user_id=user.id
-            )
-            session.add(account)
-            session.commit()
-
-            print(f"\nAdmin user {email} created successfully!")
+            if user:
+                print(f"\nAdmin user {email} created successfully!")
 
         except Exception as e:
             session.rollback()
@@ -73,17 +65,9 @@ def create_admin(engine):
 
 if __name__ == "__main__":
     # Get database URL from environment or use default
-    from dotenv import load_dotenv
-    import os
+    from app.utils.database import get_database_url
 
-    load_dotenv()
-
-    DB_USER = os.getenv("DB_USER", "postgres")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_PORT = os.getenv("DB_PORT", "5432")
-    DB_NAME = os.getenv("DB_NAME", "assessments")
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?client_encoding=utf8"
+    DATABASE_URL = get_database_url()
 
     engine = create_engine(DATABASE_URL)
 
