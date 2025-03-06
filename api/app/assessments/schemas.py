@@ -159,10 +159,29 @@ class AssessmentBase(BaseModel):
         return v
 
 
-class AssessmentCreate(AssessmentBase):
+class DiagnosticCreate(BaseModel):
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    description: str
+
+
+class DiagnosticRead(DiagnosticCreate):
+    id: int
+
+
+class AssessmentCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    scoring_method: ScoringMethod
     questions: List[QuestionCreate] = []
 
 
 class AssessmentRead(AssessmentCreate):
     id: int
     questions: List[QuestionRead] = []
+
+
+class AssessmentReadWithDiagnostics(AssessmentRead):
+    diagnostics: List[DiagnosticRead] = []

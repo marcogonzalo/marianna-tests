@@ -15,6 +15,16 @@ class ScoringMethod(str, Enum):
         return self.value
 
 
+class Diagnostic(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    description: str
+
+    assessment_id: int = Field(foreign_key="assessment.id")
+    assessment: "Assessment" = Relationship(back_populates="diagnostics")
+
+
 class Assessment(SQLModel, table=True):
     id: int = Field(default=None, index=True, primary_key=True)
     title: str
@@ -30,6 +40,12 @@ class Assessment(SQLModel, table=True):
         default_factory=get_current_datetime,
         sa_type=DateTime(timezone=True)
     )
+
+    # Relationships
+    questions: List["Question"] = Relationship(back_populates="assessment")
+    responses: List["AssessmentResponse"] = Relationship(
+        back_populates="assessment")
+    diagnostics: List[Diagnostic] = Relationship(back_populates="assessment")
 
     def __init__(self, **data):
         """
@@ -54,10 +70,6 @@ class Assessment(SQLModel, table=True):
             raise ValueError(
                 "Custom scoring method requires explicit min_value and max_value")
 
-    # Relationships
-    questions: List["Question"] = Relationship(back_populates="assessment")
-    responses: List["AssessmentResponse"] = Relationship(
-        back_populates="assessment")
 
 
 class Question(SQLModel, table=True):

@@ -25,7 +25,7 @@ export default function AssessmentCard({
                 {assessment.description}
             </p>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm mb-4">
                 <InfoBadge color="gray">
                     {assessment.scoringMethod === ScoringMethod.BOOLEAN
                         ? 'Boolean (0-1)'
