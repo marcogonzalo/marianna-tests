@@ -30,7 +30,6 @@ export default function CreateExamineeModal({
         email: '',
         internalIdentifier: '',
         comments: '',
-        created_by: '37f6495d-3f88-41d6-8a50-eae849d08d96',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +45,6 @@ export default function CreateExamineeModal({
             birthDate: formData.birthDate as unknown as Date,
             internalIdentifier: formData.internalIdentifier,
             comments: formData.comments,
-            created_by: formData.created_by,
         };
         try {
             const createdExaminee = await createExaminee(newExaminee);

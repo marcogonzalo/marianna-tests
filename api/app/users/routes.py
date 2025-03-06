@@ -98,6 +98,7 @@ def delete_account(id: UUID4, session: Session = Depends(get_session), current_u
 
 @examinees_router.post("/", response_model=ExamineeRead)
 def create_examinee(examinee: ExamineeCreate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+    examinee.created_by = current_user.account.id
     return ExamineeService.create_examinee(session, examinee)
 
 
