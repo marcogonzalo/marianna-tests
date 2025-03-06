@@ -6,11 +6,11 @@ from database import get_session
 from app.responses.schemas import (
     AssessmentResponseCreate, AssessmentResponseCreateParams, AssessmentResponseRead
 )
-from .models import Assessment, Question, ScoringMethod
+from .models import Assessment, Question, ScoringMethod, Diagnostic
 from .schemas import (
     AssessmentCreate, AssessmentRead,
     QuestionCreate, QuestionRead,
-    QuestionUpdate,
+    QuestionUpdate, DiagnosticCreate, DiagnosticRead
 )
 
 assessments_router = APIRouter(prefix="/assessments", tags=["assessments"])
@@ -187,6 +187,35 @@ async def delete_question(
     session.delete(question)
     session.commit()
     return {"message": "Question deleted"}
+
+
+# Diagnostic endpoints - all protected
+@assessments_router.post("/{assessment_id}/diagnostics", response_model=DiagnosticRead)
+async def create_diagnostic(
+    assessment_id: int,
+    diagnostic: DiagnosticCreate,
+    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
+):
+    db_assessment = session.get(Assessment, assessment_id)
+    if not db_assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    db_diagnostic = Diagnostic(
+        **diagnostic.model_dump(),
+        assessment_id=assessment_id
+    )
+    session.add(db_diagnostic)
+    session.commit()
+    session.refresh(db_diagnostic)
+    return db_diagnostic
+
+
+@assessments_router.get("/{assessment_id}/diagnostics", response_model=List[DiagnosticRead])
+async def list_diagnostics(assessment_id: int, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+    diagnostics = session.exec(
+        select(Diagnostic).where(Diagnostic.assessment_id == assessment_id)
+    ).all()
+    return diagnostics
 
 # Assessment Response endpoints
 

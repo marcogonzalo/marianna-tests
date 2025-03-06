@@ -6,6 +6,7 @@ import { Page } from '../layouts/components/Page';
 import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import QuestionFormList from '@/features/assessments/components/QuestionFormList';
 import { FormButton } from '@/components/ui';
+import DiagnosticsModal from '@/features/assessments/components/DiagnosticsModal';
 
 export default function AssessmentPage() {
     const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ export default function AssessmentPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [isDiagnosticsModalOpen, setIsDiagnosticsModalOpen] = useState(false);
 
     useEffect(() => {
         const loadAssessment = async () => {
@@ -34,6 +36,14 @@ export default function AssessmentPage() {
 
     const handleEditAssessment = () => {
         // Logic to edit assessment
+    };
+
+    const handleOpenDiagnosticsModal = () => {
+        setIsDiagnosticsModalOpen(true);
+    };
+
+    const handleCloseDiagnosticsModal = () => {
+        setIsDiagnosticsModalOpen(false);
     };
 
     if (loading) {
@@ -58,6 +68,18 @@ export default function AssessmentPage() {
 
     return (
         <Page title={`Assessment: ${assessment.title}`}>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">{assessment.title}</h2>
+                <div className="flex space-x-2">
+                    <FormButton
+                        variant="secondary"
+                        onClick={handleOpenDiagnosticsModal}
+                    >
+                        Manage Diagnostics
+                    </FormButton>
+                </div>
+            </div>
+            
             <AssessmentCard
                 assessment={assessment}
                 onClick={handleEditAssessment}
@@ -80,6 +102,14 @@ export default function AssessmentPage() {
                     isEditing={isEditing}
                 />
             </div>
+
+            {assessment.id && (
+                <DiagnosticsModal
+                    isOpen={isDiagnosticsModalOpen}
+                    onClose={handleCloseDiagnosticsModal}
+                    assessmentId={assessment.id}
+                />
+            )}
         </Page>
     );
 }

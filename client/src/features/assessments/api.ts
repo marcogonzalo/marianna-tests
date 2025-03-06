@@ -8,6 +8,8 @@ import {
     Question,
     QuestionAPI,
     ResponseStatus,
+    Diagnostic,
+    DiagnosticAPI,
 } from '@/features/assessments/types/';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
 
@@ -139,3 +141,30 @@ export async function getAssessmentResponses(
     );
     return transformKeys(data, toCamelCase) as AssessmentResponse[];
 }
+
+export const getDiagnostics = async (
+    assessmentId: number,
+): Promise<Diagnostic[]> => {
+    const data = await fetchApi<DiagnosticAPI[]>(
+        `/assessments/${assessmentId}/diagnostics`,
+    );
+    return transformKeys(data, toCamelCase) as Diagnostic[];
+};
+
+export const createDiagnostic = async (
+    assessmentId: number,
+    diagnostic: Diagnostic,
+): Promise<Diagnostic> => {
+    const transformedData = transformKeys(
+        diagnostic,
+        toSnakeCase,
+    ) as DiagnosticAPI;
+    const data = await fetchApi<DiagnosticAPI>(
+        `/assessments/${assessmentId}/diagnostics`,
+        {
+            method: 'POST',
+            body: JSON.stringify(transformedData),
+        },
+    );
+    return transformKeys(data, toCamelCase) as Diagnostic;
+};

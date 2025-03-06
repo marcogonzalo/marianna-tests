@@ -54,3 +54,11 @@ export interface QuestionResponse {
     textValue?: string;
     createdAt?: string;
 }
+
+export interface Diagnostic {
+    id?: number;
+    assessmentId?: number;
+    minValue?: number;
+    maxValue?: number;
+    description: string;
+}

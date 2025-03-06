@@ -12,6 +12,14 @@ export interface AssessmentAPI {
     questions?: QuestionAPI[];
 }
 
+export interface DiagnosticAPI {
+    id?: number;
+    assessment_id?: number;
+    min_value?: number;
+    max_value?: number;
+    description: string;
+}
+
 export interface QuestionAPI {
     id?: number;
     text: string;
