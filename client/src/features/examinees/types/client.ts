@@ -31,7 +31,6 @@ export interface CreateExamineeRequest {
     email: string;
     internalIdentifier?: string;
     comments?: string;
-    created_by: string;
 }
 
 export interface UpdateExamineeRequest {
