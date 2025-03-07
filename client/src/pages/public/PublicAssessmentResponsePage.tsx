@@ -25,6 +25,7 @@ export default function AssessmentResponsePage() {
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isCompleted, setIsCompleted] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -79,8 +80,7 @@ export default function AssessmentResponsePage() {
                             : 0,
                     };
                 })
-                .filter((qr) => qr.numericValue >= 0);
-
+                .filter((qr) => !!qr.numericValue);
             const updatedResponse = {
                 ...response,
                 status: ResponseStatus.COMPLETED,
@@ -88,6 +88,7 @@ export default function AssessmentResponsePage() {
             };
             await updateAssessmentResponse(response.id!, updatedResponse);
             setResponse(updatedResponse);
+            setIsCompleted(true);
         } catch (error) {
             console.error('Error submitting responses:', error);
             setError('Failed to submit responses: ' + error);
@@ -104,12 +105,21 @@ export default function AssessmentResponsePage() {
         );
     }
 
-    if (!response || response.status !== ResponseStatus.PENDING) {
+    if (
+        !response ||
+        response.status !== ResponseStatus.PENDING ||
+        isCompleted
+    ) {
         return (
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="text-center text-red-600">
-                        The assessment is not available
+                    <div
+                        className={`text-center ${
+                            isCompleted ? 'text-green-600' : 'text-red-600'
+                        }`}
+                    >
+                        The assessment is{' '}
+                        {isCompleted ? 'completed' : 'not available'}.
                     </div>
                 </div>
             </div>
