@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FormButton, FormInput } from '@/components/ui';
 
@@ -9,9 +9,11 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const auth = useAuth();
 
-    const from = location.state?.from?.pathname || '/examinees';
+    // Get the redirect path from either the URL search params or the location state
+    const from = searchParams.get('redirect') || location.state?.from?.pathname || '/examinees';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
