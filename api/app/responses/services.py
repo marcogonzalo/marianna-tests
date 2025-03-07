@@ -127,19 +127,15 @@ class AssessmentResponseService:
         return responses
 
     @staticmethod
-    def create_question_responses_bulk(session: Session, assessment_response: AssessmentResponseRead, bulk_response: BulkQuestionResponseCreate) -> AssessmentResponse:
+    def create_question_responses_bulk(session: Session, assessment_response_id: str, bulk_response: BulkQuestionResponseCreate) -> AssessmentResponse:
         """
         Creates multiple question responses in bulk and calculates the total score.
-
-        Args:
-            session: The database session.
-            assessment_response: The assessment response object to check the status.
-            bulk_response: The bulk question response data.
-            response_id: The ID of the associated assessment response.
-
-        Returns:
-            A tuple containing the total score and a list of created question responses.
         """
+        # Get the actual database model instance
+        assessment_response = session.get(AssessmentResponse, assessment_response_id)
+        if not assessment_response:
+            raise HTTPException(status_code=404, detail="Assessment response not found")
+
         if assessment_response.status != ResponseStatus.PENDING:
             raise HTTPException(
                 status_code=400, detail="Cannot process responses; the assessment is not in a PENDING state.")
@@ -156,16 +152,13 @@ class AssessmentResponseService:
 
             question_responses.append(question_response)
 
-        assessment_response_saved = AssessmentResponseService.update_assessment_response_status_and_score(
+        assessment_response = AssessmentResponseService.update_assessment_response_status_and_score(
             session, assessment_response, ResponseStatus.COMPLETED, total_score)
-        if assessment_response_saved.status == ResponseStatus.COMPLETED:
-            assessment_response.score = total_score
-            assessment_response.status = ResponseStatus.COMPLETED
 
         return assessment_response
 
     @staticmethod
-    def update_assessment_response_status_and_score(session: Session, assessment_response: AssessmentResponse, status_update: ResponseStatus, total_score: float = None) -> AssessmentResponse:
+    def update_assessment_response_status_and_score(session: Session, assessment_response: AssessmentResponseRead, status_update: ResponseStatus, total_score: float = None) -> AssessmentResponse:
         """
           Updates the assessment response status and score.
 

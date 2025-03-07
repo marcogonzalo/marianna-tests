@@ -111,8 +111,6 @@ class AssessmentBase(BaseModel):
         if v is None and info.data.get('scoring_method') == ScoringMethod.CUSTOM:
             raise ValueError(
                 "Custom scoring method requires min_value and max_value")
-        if v is not None and v < 0:
-            raise ValueError("Values cannot be negative")
         return v
 
     @field_validator('min_value')
@@ -148,6 +146,9 @@ class AssessmentBase(BaseModel):
     def set_default_values(cls, v, info):
         if v == ScoringMethod.BOOLEAN:
             info.data['min_value'] = 0.0
+            info.data['max_value'] = 1.0
+        if v == ScoringMethod.SCORED:
+            info.data['min_value'] = -1.0
             info.data['max_value'] = 1.0
         return v
 

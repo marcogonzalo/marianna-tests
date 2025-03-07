@@ -3,7 +3,7 @@ from sqlmodel import Session
 from app.responses.models import ResponseStatus
 from app.auth.services import AuthService
 from app.auth.security import oauth2_scheme_optional
-from app.assessments.schemas import AssessmentRead
+from app.assessments.schemas import AssessmentBase, AssessmentRead
 from .schemas import (
     AssessmentResponseRead,
     AssessmentResponseReadWithAssessment,
@@ -43,7 +43,7 @@ async def get_assessment_responses(
         if response.assessment:
             assessment_dict = response.assessment.model_dump()
             response_dict = response.model_dump()
-            response_dict['assessment'] = AssessmentRead.model_validate(
+            response_dict['assessment'] = AssessmentBase.model_validate(
                 assessment_dict)
             validated_responses.append(
                 AssessmentResponseReadWithAssessment.model_validate(response_dict))
@@ -73,14 +73,10 @@ async def change_status(
 async def create_bulk_responses(
     response_id: str,
     bulk_response: BulkQuestionResponseCreate,
-    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
+    session: Session = Depends(get_session)
 ):
-    assessment_response = AssessmentResponseService.get_assessment_response(
-        session, response_id)
-
-    # Create all question responses and calculate the total score
     assessment_response = AssessmentResponseService.create_question_responses_bulk(
-        session, assessment_response, bulk_response)
+        session, response_id, bulk_response)
 
     return AssessmentResponseRead.model_validate(assessment_response)
 
