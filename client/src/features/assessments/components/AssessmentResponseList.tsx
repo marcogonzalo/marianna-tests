@@ -40,9 +40,16 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                     {responses.map((response) => (
                         <tr key={response.id}>
                             <td className="py-2 px-4 border-b">
-                                {response.assessment?.title}
+                                {response.status ===
+                                ResponseStatus.DISCARDED ? (
+                                    <s className="text-gray-500">
+                                        {response.assessment?.title}
+                                    </s>
+                                ) : (
+                                    response.assessment?.title
+                                )}
                             </td>
-                            <td className="py-2 px-4 border-b">
+                            <td className="py-2 px-4 border-b text-center">
                                 <select
                                     value={response.status}
                                     onChange={(e) =>
@@ -73,7 +80,7 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                                     )}
                                 </select>
                             </td>
-                            <td className="py-2 px-4 border-b">
+                            <td className="py-2 px-4 border-b text-center">
                                 {response.status === ResponseStatus.PENDING && (
                                     <FormButton
                                         onClick={() =>
@@ -100,12 +107,12 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                                     </FormButton>
                                 )}
                             </td>
-                            <td className="py-2 px-4 border-b">
+                            <td className="py-2 px-4 border-b text-center">
                                 {new Date(
                                     response.createdAt,
                                 ).toLocaleDateString()}
                             </td>
-                            <td className="py-2 px-4 border-b">
+                            <td className="py-2 px-4 border-b text-center">
                                 {new Date(
                                     response.updatedAt,
                                 ).toLocaleDateString()}

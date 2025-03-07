@@ -158,16 +158,14 @@ class AssessmentResponseService:
         return assessment_response
 
     @staticmethod
-    def update_assessment_response_status_and_score(session: Session, assessment_response: AssessmentResponseRead, status_update: ResponseStatus, total_score: float = None) -> AssessmentResponse:
+    def update_assessment_response_status_and_score(session: Session, response_id: str, status_update: ResponseStatus, total_score: float = None) -> AssessmentResponse:
         """
-          Updates the assessment response status and score.
-
-          Args:
-              session: The database session.
-              assessment_response: Assessment Response object.
-              total_score: The total score.
-              status_update: The new status.
-          """
+        Updates the assessment response status and score.
+        """
+        # Get the actual database model instance
+        assessment_response = session.get(AssessmentResponse, response_id)
+        if not assessment_response:
+            raise HTTPException(status_code=404, detail="Assessment response not found")
 
         score_change = assessment_response.status == ResponseStatus.PENDING and status_update == ResponseStatus.COMPLETED and total_score is not None
         if score_change:
