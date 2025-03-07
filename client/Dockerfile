@@ -18,9 +18,6 @@ COPY ./package*.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm \
     npm install
 COPY ./*.config.*s ./tsconfig*.json ./
-COPY ./index.html ./
-COPY ./public ./public
-COPY ./src ./src
 
 ###################################################
 # Stage: client-dev

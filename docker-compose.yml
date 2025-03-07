@@ -29,10 +29,11 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./client:/usr/local/api
+      - ./client:/usr/local/app
       - /usr/local/app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true  # Enable polling for better file watching in Docker
     command: npm run dev
     depends_on:
       - api
