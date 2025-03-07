@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     getAssessment,
     getAssessmentResponse,
+    getDiagnostics,
 } from '@/features/assessments/api';
 import {
     Assessment,
     AssessmentResponse,
+    Diagnostic,
     Question,
 } from '@/features/assessments/types/client';
 import { Page } from '../layouts/components/Page';
@@ -14,6 +16,7 @@ import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import { FormButton } from '@/components/ui';
 import ChoiceList from '@/features/assessments/components/ChoiceList';
 import { ResponseStatus } from '@/features/assessments/types';
+import AssessmentScoreSummary from '@/features/assessments/components/AssessmentScoreSummary';
 
 export default function AssessmentResponsePage() {
     const { responseId } = useParams<{
@@ -25,7 +28,8 @@ export default function AssessmentResponsePage() {
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+    const [matchingDiagnostic, setMatchingDiagnostic] = useState<Diagnostic | null>(null);
+    
     const isViewable = (response: AssessmentResponse): boolean =>
         response.status === ResponseStatus.PENDING ||
         response.status === ResponseStatus.COMPLETED;
@@ -57,6 +61,29 @@ export default function AssessmentResponsePage() {
 
         loadData();
     }, [responseId]);
+
+    useEffect(() => {
+        const fetchDiagnostics = async () => {
+            try {
+                    if (!assessment?.id || !response?.score || response?.status !== ResponseStatus.COMPLETED) return;
+                    const diagnosticsData = await getDiagnostics(assessment.id);
+                    
+                // Find the matching diagnostic based on the score
+                const score = response.score;
+                const matching = diagnosticsData.find(
+                (d) => (d.minValue === undefined || d.minValue === null || score >= d.minValue) && 
+                        (d.maxValue === undefined || d.maxValue === null || score <= d.maxValue)
+                );
+                setMatchingDiagnostic(matching || null);
+            } catch (err) {
+                setError('Failed to load diagnostics');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDiagnostics();
+    }, [assessment, response]);
 
     if (loading) {
         return (
@@ -122,14 +149,9 @@ export default function AssessmentResponsePage() {
                                     {response.status}
                                 </span>
                             </p>
-                            {response.score !== null && (
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Score: {response.score}
-                                </p>
-                            )}
                         </div>
                     </div>
-
+                    {matchingDiagnostic && <AssessmentScoreSummary score={response.score ?? null} diagnostic={matchingDiagnostic} />}
                     <div className="mt-8 space-y-8">
                         {isViewable(response) &&
                             questionList?.map((question) => {

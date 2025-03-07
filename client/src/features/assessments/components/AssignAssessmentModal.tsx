@@ -6,13 +6,14 @@ import {
 } from '@/features/assessments/api';
 import {
     Assessment,
+    AssessmentResponse,
     CreateAssessmentResponse,
 } from '@/features/assessments/types/client';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 interface AssignAssessmentModalProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose: (assessmentResponse: AssessmentResponse | null) => void;
     examineeId: string;
 }
 
@@ -49,16 +50,15 @@ export function AssignAssessmentModal({
             const data: CreateAssessmentResponse = {
                 examineeId,
             };
-            await createAssessmentResponse(assessmentId, data);
-            alert('Assessment assigned successfully!');
-            onClose(); // Close the modal after assignment
+            const response = await createAssessmentResponse(assessmentId, data);
+            onClose({ ...response, assessment: assessments.find(a => a.id === assessmentId) }); // Close the modal after assignment
         } catch (err) {
             console.error('Error assigning assessment:', err);
             alert('Failed to assign assessment');
         }
     };
     return (
-        <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+        <Dialog open={isOpen} onClose={() => onClose(null)} className="relative z-50">
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
                 <DialogPanel className="mx-auto max-w-md rounded-xl bg-white p-6 shadow-xl">
@@ -84,7 +84,7 @@ export function AssignAssessmentModal({
                             </li>
                         ))}
                     </ul>)}
-                    <FormButton onClick={onClose}>Close</FormButton>
+                    <FormButton onClick={() => onClose(null)}>Close</FormButton>
                 </DialogPanel>
             </div>
         </Dialog>

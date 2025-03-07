@@ -55,16 +55,12 @@ async def get_assessment_responses(
 async def change_status(
     response_id: str,
     status_update: AssessmentResponseUpdate,
-    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
+    session: Session = Depends(get_session), 
+    current_user=Depends(AuthService.get_current_active_user)
 ):
-    assessment_response = AssessmentResponseService.get_assessment_response(
-        session, response_id)
-
-    if assessment_response is None:
-        return {"error": "Assessment response not found"}, 404
-
-    AssessmentResponseService.update_assessment_response_status_and_score(
-        session, assessment_response, status_update.status)
+    # Pass the ID directly and let the service handle getting the database model
+    assessment_response = AssessmentResponseService.update_assessment_response_status_and_score(
+        session, response_id, status_update.status)
 
     return AssessmentResponseRead.model_validate(assessment_response)
 

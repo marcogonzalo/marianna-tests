@@ -44,25 +44,31 @@ export default function ExamineeDetailPage() {
     }, [id]);
 
     useEffect(() => {
-        const fetchAssessmentResponses = async () => {
-            if (examinee) {
-                try {
-                    const responses = await getAssessmentResponses(examinee.id);
-                    setAssessmentResponses(responses);
-                } catch (err) {
-                    console.error('Error loading assessment responses:', err);
-                }
-            }
-        };
-
         fetchAssessmentResponses();
     }, [examinee]);
+
+    const fetchAssessmentResponses = async () => {
+        if (examinee) {
+            try {
+                const responses = await getAssessmentResponses(examinee.id);
+                setAssessmentResponses(responses);
+            } catch (err) {
+                console.error('Error loading assessment responses:', err);
+            }
+        }
+    };
 
     const handleOpenModal = () => {
         setIsAssignModalOpen(true);
     };
 
-    const handleCloseModal = () => {
+    const handleCloseModal = (assessmentResponse: AssessmentResponse | null) => {
+        if (assessmentResponse) {
+            setAssessmentResponses((prevResponses) => [
+                ...prevResponses,
+                assessmentResponse,
+            ]);
+        }
         setIsAssignModalOpen(false);
     };
 
