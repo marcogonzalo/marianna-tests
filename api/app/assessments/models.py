@@ -19,7 +19,7 @@ class Diagnostic(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     min_value: Optional[float] = None
     max_value: Optional[float] = None
-    description: str
+    description: str = Field(default=None, sa_type=Text)
 
     assessment_id: int = Field(foreign_key="assessment.id")
     assessment: "Assessment" = Relationship(back_populates="diagnostics")
