@@ -24,7 +24,7 @@ def upgrade() -> None:
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('min_value', sa.Float(), nullable=True),
                     sa.Column('max_value', sa.Float(), nullable=True),
-                    sa.Column('description', sa.String(), nullable=False),
+                    sa.Column('description', sa.Text(), nullable=False),
                     sa.Column('assessment_id', sa.Integer(), nullable=False),
                     sa.ForeignKeyConstraint(
                         ['assessment_id'], ['assessment.id'], ),
