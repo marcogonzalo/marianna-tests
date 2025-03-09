@@ -8,15 +8,26 @@ from app.assessments.models import ScoringMethod
 
 
 def test_assessment_create_validation():
-    # Valid assessment with boolean scoring
+    # Test BOOLEAN scoring method
     assessment = AssessmentCreate(
         title="Test Assessment",
         scoring_method=ScoringMethod.BOOLEAN
     )
     assert assessment.title == "Test Assessment"
     assert assessment.scoring_method == ScoringMethod.BOOLEAN
+    assert assessment.min_value == 0.0
+    assert assessment.max_value == 1.0
 
-    # Invalid custom scoring (missing min/max values)
+    # Test SCORED scoring method
+    assessment = AssessmentCreate(
+        title="Test Assessment",
+        scoring_method=ScoringMethod.SCORED
+    )
+    assert assessment.scoring_method == ScoringMethod.SCORED
+    assert assessment.min_value == -1.0
+    assert assessment.max_value == 1.0
+
+    # Test invalid custom scoring (missing min/max values)
     with pytest.raises(ValueError, match="Custom scoring method requires explicit min_value and max_value"):
         AssessmentCreate(
             title="Test Assessment",
@@ -25,7 +36,16 @@ def test_assessment_create_validation():
             max_value=None
         )
 
-    # Valid custom scoring
+    # Test invalid min/max relationship
+    with pytest.raises(ValueError, match="max_value must be greater than min_value"):
+        AssessmentCreate(
+            title="Test Assessment",
+            scoring_method=ScoringMethod.CUSTOM,
+            min_value=10.0,
+            max_value=5.0
+        )
+
+    # Test valid custom scoring
     assessment = AssessmentCreate(
         title="Test Assessment",
         scoring_method=ScoringMethod.CUSTOM,

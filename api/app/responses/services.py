@@ -18,7 +18,6 @@ class AssessmentResponseService:
 
         # # Create the assessment response
         assessment_response = AssessmentResponse(
-            # id=assessment_response_id,
             assessment_id=response_data.assessment_id,
             examinee_id=response_data.examinee_id,
             status=response_data.status,
@@ -31,7 +30,7 @@ class AssessmentResponseService:
         return assessment_response
 
     @staticmethod
-    def update_assessment_response(session: Session, response_id: int, update_data: AssessmentResponseUpdate) -> AssessmentResponse:
+    def update_assessment_response(session: Session, response_id: str, update_data: AssessmentResponseUpdate) -> AssessmentResponse:
         assessment_response = session.get(AssessmentResponse, response_id)
         if not assessment_response:
             raise HTTPException(
@@ -47,12 +46,11 @@ class AssessmentResponseService:
         return assessment_response
 
     @staticmethod
-    def get_assessment_response(session: Session, response_id: int) -> AssessmentResponse:
+    def get_assessment_response(session: Session, response_id: str) -> AssessmentResponse:
         assessment_response = session.exec(
             select(AssessmentResponse).where(
                 AssessmentResponse.id == response_id)
             .join(Assessment)
-            # Eager load the assessment and question responses
             .options(
                 selectinload(AssessmentResponse.assessment),
                 selectinload(AssessmentResponse.question_responses)
@@ -66,6 +64,10 @@ class AssessmentResponseService:
         response_dict = assessment_response.model_dump()
         if assessment_response.assessment:
             response_dict['assessment'] = assessment_response.assessment.model_dump()
+        if assessment_response.question_responses:
+            response_dict['question_responses'] = [
+                qr.model_dump() for qr in assessment_response.question_responses
+            ]
 
         return response_dict
 
