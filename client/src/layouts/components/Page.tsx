@@ -6,15 +6,16 @@ import { Helmet } from 'react-helmet';
 interface props {
     children: ReactNode;
     title?: string;
+    description?: string;
 }
 
-export function Page({ title, children }: props) {
+export function Page({ title, description, children }: props) {
     return (
         <>
             <Helmet>
                 <title>{title}</title>
             </Helmet>
-            {title && <Header title={title} />}
+            {title && <Header title={title} description={description} />}
             <Main>{children}</Main>
         </>
     );

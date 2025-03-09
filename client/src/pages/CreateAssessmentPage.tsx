@@ -76,12 +76,13 @@ export default function CreateAssessmentPage() {
 
             <form
                 onSubmit={handleSubmit}
-                className="card divide-y divide-gray-200"
+                className="card"
             >
-                <div className="p-6 space-y-6">
-                    <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                        <div className="sm:col-span-4">
-                            <div className="mt-2">
+                <div className="space-y-6 bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column */}
+                        <div className="space-y-6">
+                            <div>
                                 <FormInput
                                     label="Title"
                                     id="title"
@@ -96,9 +97,72 @@ export default function CreateAssessmentPage() {
                                     required
                                 />
                             </div>
+
+                            <div>
+                                <FormSelect
+                                    label="Scoring Method"
+                                    id="scoringMethod"
+                                    value={form.scoringMethod}
+                                    onChange={(e) =>
+                                        handleScoringMethodChange(
+                                            e.target.value as ScoringMethod,
+                                        )
+                                    }
+                                >
+                                    {Object.values(ScoringMethod).map(
+                                        (method) => (
+                                            <option key={method} value={method}>
+                                                {method ===
+                                                ScoringMethod.BOOLEAN
+                                                    ? 'Boolean (0-1)'
+                                                    : method ===
+                                                      ScoringMethod.SCORED
+                                                    ? 'Scored (-1 to 1)'
+                                                    : 'Custom Range'}
+                                            </option>
+                                        ),
+                                    )}
+                                </FormSelect>
+
+                                {form.scoringMethod === 'custom' && (
+                                    <div className="grid grid-cols-2 gap-4 mt-4">
+                                        <FormInput
+                                            label="Minimum value"
+                                            id="minValue"
+                                            type="number"
+                                            value={form.minValue}
+                                            onChange={(e) =>
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    minValue: Number(
+                                                        e.target.value,
+                                                    ),
+                                                }))
+                                            }
+                                            required
+                                        />
+                                        <FormInput
+                                            label="Maximum value"
+                                            id="maxValue"
+                                            type="number"
+                                            value={form.maxValue}
+                                            onChange={(e) =>
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    maxValue: Number(
+                                                        e.target.value,
+                                                    ),
+                                                }))
+                                            }
+                                            required
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="sm:col-span-4">
+                        {/* Right Column */}
+                        <div className="h-full">
                             <FormTextarea
                                 label="Description"
                                 id="description"
@@ -109,69 +173,14 @@ export default function CreateAssessmentPage() {
                                         description: e.target.value,
                                     }))
                                 }
-                                rows={4}
+                                rows={12}
+                                className="h-full"
                             />
                         </div>
-
-                        <div className="sm:col-span-4">
-                            <FormSelect
-                                label="Scoring Method"
-                                id="scoringMethod"
-                                value={form.scoringMethod}
-                                onChange={(e) =>
-                                    handleScoringMethodChange(
-                                        e.target.value as ScoringMethod,
-                                    )
-                                }
-                            >
-                                {Object.values(ScoringMethod).map((method) => (
-                                    <option key={method} value={method}>
-                                        {method === ScoringMethod.BOOLEAN
-                                            ? 'Boolean (0-1)'
-                                            : method === ScoringMethod.SCORED
-                                            ? 'Scored (-1 to 1)'
-                                            : 'Custom Range'}
-                                    </option>
-                                ))}
-                            </FormSelect>
-                        </div>
-
-                        {form.scoringMethod === 'custom' && (
-                            <div className="sm:col-span-4 grid grid-cols-2 gap-4">
-                                <FormInput
-                                    label="Minimum value"
-                                    id="minValue"
-                                    type="number"
-                                    value={form.minValue}
-                                    onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            minValue: Number(e.target.value),
-                                        }))
-                                    }
-                                    className="input mt-1"
-                                    required
-                                />
-                                <FormInput
-                                    label="Maximum value"
-                                    id="maxValue"
-                                    type="number"
-                                    value={form.maxValue}
-                                    onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            maxValue: Number(e.target.value),
-                                        }))
-                                    }
-                                    className="input mt-1"
-                                    required
-                                />
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-x-6">
+                <div className="mt-4 flex items-center justify-end gap-x-6">
                     <FormButton
                         variant="secondary"
                         type="button"

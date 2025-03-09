@@ -16,7 +16,9 @@ import AssessmentCard from '@/features/assessments/components/AssessmentCard';
 import { FormButton } from '@/components/ui';
 import ChoiceList from '@/features/assessments/components/ChoiceList';
 import { ResponseStatus } from '@/features/assessments/types';
-import AssessmentScoreSummary from '@/features/assessments/components/AssessmentScoreSummary';
+import DiagnosticSummary from '../features/assessments/components/DiagnosticSummary';
+import { getExaminee } from '@/features/examinees/api';
+import { Examinee } from '@/features/examinees/types';
 
 export default function AssessmentResponsePage() {
     const { responseId } = useParams<{
@@ -28,8 +30,9 @@ export default function AssessmentResponsePage() {
     const [response, setResponse] = useState<AssessmentResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [matchingDiagnostic, setMatchingDiagnostic] = useState<Diagnostic | null>(null);
-    
+    const [matchingDiagnostic, setMatchingDiagnostic] =
+        useState<Diagnostic | null>(null);
+    const [examinee, setExaminee] = useState<Examinee | null>(null);
     const isViewable = (response: AssessmentResponse): boolean =>
         response.status === ResponseStatus.PENDING ||
         response.status === ResponseStatus.COMPLETED;
@@ -38,19 +41,46 @@ export default function AssessmentResponsePage() {
         const loadData = async () => {
             try {
                 if (!responseId) throw new Error('Response IDs is required');
+
                 const responseData = await getAssessmentResponse(responseId);
                 setResponse(responseData);
                 setError(null);
+
                 if (!responseData.assessmentId)
                     throw new Error('Assessment IDs is required');
                 const assessmentData = await getAssessment(
                     responseData.assessmentId,
                 );
                 setAssessment(assessmentData);
-                const sortedQuestions = [...assessmentData.questions!].sort(
-                    (a, b) => (a.order ?? 0) - (b.order ?? 0),
-                );
-                setQuestionList(sortedQuestions);
+
+                const examineeData = await getExaminee(responseData.examineeId);
+                setExaminee(examineeData);
+
+                // Load diagnostics if response is completed and has a score
+                if (
+                    responseData.status === ResponseStatus.COMPLETED &&
+                    responseData.score !== undefined &&
+                    assessmentData.id
+                ) {
+                    const sortedQuestions = [...assessmentData.questions!].sort(
+                        (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                    );
+                    setQuestionList(sortedQuestions);
+                    const diagnosticsData = await getDiagnostics(
+                        assessmentData.id,
+                    );
+                    const score = responseData.score;
+                    const matching = diagnosticsData.find(
+                        (d) =>
+                            (d.minValue === undefined ||
+                                d.minValue === null ||
+                                score >= d.minValue) &&
+                            (d.maxValue === undefined ||
+                                d.maxValue === null ||
+                                score <= d.maxValue),
+                    );
+                    setMatchingDiagnostic(matching || null);
+                }
             } catch (err) {
                 setError('Failed to load assessment response data');
                 console.error('Error loading assessment response data:', err);
@@ -61,29 +91,6 @@ export default function AssessmentResponsePage() {
 
         loadData();
     }, [responseId]);
-
-    useEffect(() => {
-        const fetchDiagnostics = async () => {
-            try {
-                    if (!assessment?.id || !response?.score || response?.status !== ResponseStatus.COMPLETED) return;
-                    const diagnosticsData = await getDiagnostics(assessment.id);
-                    
-                // Find the matching diagnostic based on the score
-                const score = response.score;
-                const matching = diagnosticsData.find(
-                (d) => (d.minValue === undefined || d.minValue === null || score >= d.minValue) && 
-                        (d.maxValue === undefined || d.maxValue === null || score <= d.maxValue)
-                );
-                setMatchingDiagnostic(matching || null);
-            } catch (err) {
-                setError('Failed to load diagnostics');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchDiagnostics();
-    }, [assessment, response]);
 
     if (loading) {
         return (
@@ -106,8 +113,11 @@ export default function AssessmentResponsePage() {
     }
 
     return (
-        <Page title={`Response for: ${assessment.title}`}>
-            <div className="flex justify-between items-center mb-4">
+        <Page
+            title={`Response for: ${assessment.title}`}
+            description={`Examinee: ${examinee?.firstName} ${examinee?.lastName}`}
+        >
+            <div className="flex justify-between items-center">
                 <div className="flex-1">
                     <AssessmentCard
                         assessment={assessment}
@@ -128,7 +138,7 @@ export default function AssessmentResponsePage() {
                 </div>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-4">
                 <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div>
@@ -149,9 +159,18 @@ export default function AssessmentResponsePage() {
                                     {response.status}
                                 </span>
                             </p>
+
+                            <p className="text-sm font-semibold text-gray-900 mt-2">
+                                Score obtanied: {response.score}
+                            </p>
                         </div>
                     </div>
-                    {matchingDiagnostic && <AssessmentScoreSummary score={response.score ?? null} diagnostic={matchingDiagnostic} />}
+                    {matchingDiagnostic && (
+                        <DiagnosticSummary
+                            score={response.score ?? null}
+                            diagnostic={matchingDiagnostic}
+                        />
+                    )}
                     <div className="mt-8 space-y-8">
                         {isViewable(response) &&
                             questionList?.map((question) => {
@@ -164,7 +183,7 @@ export default function AssessmentResponsePage() {
                                 const choices = [...question.choices].sort(
                                     (a, b) => (a.order ?? 0) - (b.order ?? 0),
                                 );
-
+                                console.log(choices, response);
                                 return (
                                     <div
                                         key={question.id}
