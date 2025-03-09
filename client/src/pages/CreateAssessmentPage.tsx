@@ -6,10 +6,12 @@ import { Page } from '../layouts/components/Page';
 import {
     FormButton,
     FormInput,
-    FormTextarea,
+    FormLabel,
     FormSelect,
 } from '@/components/ui';
 import { createAssessment } from '@/features/assessments/api';
+import TextEditor from '@/components/text-editor';
+import { Field } from '@headlessui/react';
 
 interface AssessmentForm {
     title: string;
@@ -163,19 +165,18 @@ export default function CreateAssessmentPage() {
 
                         {/* Right Column */}
                         <div className="h-full">
-                            <FormTextarea
-                                label="Description"
-                                id="description"
-                                value={form.description}
-                                onChange={(e) =>
+                            <Field>
+                                <FormLabel>Description</FormLabel>
+                                <TextEditor
+                                    data={form.description}
+                                onChange={(value) =>
                                     setForm((prev) => ({
                                         ...prev,
-                                        description: e.target.value,
+                                        description: value,
                                     }))
                                 }
-                                rows={12}
-                                className="h-full"
                             />
+                            </Field>
                         </div>
                     </div>
                 </div>

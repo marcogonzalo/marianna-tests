@@ -1,6 +1,7 @@
 import InfoBadge from '@/components/ui/InfoBadge';
 import { Assessment } from '@/features/assessments/types/client';
 import { ScoringMethod } from '@/features/assessments/types/shared';
+import Markdown from 'react-markdown';
 
 interface AssessmentCardProps {
     assessment: Assessment;
@@ -22,7 +23,7 @@ export default function AssessmentCard({
                 {assessment.title}
             </h3>
             <p className="text-gray-500 line-clamp-2 mb-4">
-                {assessment.description}
+                <Markdown>{assessment.description}</Markdown>
             </p>
 
             <div className="flex items-center justify-between text-sm mb-4">

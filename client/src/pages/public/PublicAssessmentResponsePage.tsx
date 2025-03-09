@@ -15,6 +15,7 @@ import { FormButton } from '@/components/ui';
 import ChoiceList from '@/features/assessments/components/ChoiceList';
 import { ResponseStatus } from '@/features/assessments/types';
 import InfoBadge from '@/components/ui/InfoBadge';
+import Markdown from 'react-markdown';
 
 export default function AssessmentResponsePage() {
     const { responseId } = useParams<{
@@ -145,7 +146,7 @@ export default function AssessmentResponsePage() {
                             {assessment.title}
                         </h3>
                         <p className="text-gray-500 line-clamp-2 mb-4">
-                            {assessment.description}
+                            <Markdown>{assessment.description}</Markdown>
                         </p>
 
                         <div className="flex items-start gap-2 text-sm">

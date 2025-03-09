@@ -22,7 +22,7 @@ export default function FormButton({
             hover: 'hover:bg-indigo-700',
         },
         secondary: {
-            base: 'btn-secondary text-white bg-indigo-400 shadow-sm',
+            base: 'btn-secondary text-white bg-indigo-300 shadow-sm',
             hover: 'hover:bg-indigo-700',
         },
         link: {

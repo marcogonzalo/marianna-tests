@@ -1,4 +1,5 @@
 import { Diagnostic } from '@/features/assessments/types/client';
+import Markdown from 'react-markdown';
 
 interface DiagnosticSummaryProps {
     score: number | null;
@@ -41,7 +42,7 @@ export default function DiagnosticSummary({
                             )}
                         </p>
                         <div className="text-sm text-gray-700">
-                            {diagnostic.description}
+                            <Markdown>{diagnostic.description}</Markdown>
                         </div>
                     </div>
 

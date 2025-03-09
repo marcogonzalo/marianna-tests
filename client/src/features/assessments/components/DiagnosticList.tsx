@@ -1,4 +1,5 @@
 import { Diagnostic } from '@/features/assessments/types/client';
+import Markdown from 'react-markdown';
 
 interface DiagnosticListProps {
     diagnostics: Diagnostic[];
@@ -31,18 +32,21 @@ export default function DiagnosticList({
         <div className="mb-6">
             <ul className="divide-y divide-gray-200">
                 {diagnostics.map((diagnostic) => (
-                    <li key={diagnostic.id} className="p-4 hover:bg-gray-50">
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">
-                                {diagnostic.description}
-                            </span>
-                            <div className="mt-1 flex items-center text-xs text-gray-500">
+                    <li
+                        key={diagnostic.id}
+                        className="p-2 hover:bg-gray-50 flex"
+                    >
+                        <div className="mt-1 flex-col items-center text-xs text-gray-500">
+                            <p>
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 mr-2">
                                     Min: {diagnostic.minValue ?? '-∞'}
                                 </span>
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">
                                     Max: {diagnostic.maxValue ?? '∞'}
                                 </span>
+                            </p>
+                            <div className="ml-2 mt-2 text-sm font-medium text-gray-900">
+                                <Markdown>{diagnostic.description}</Markdown>
                             </div>
                         </div>
                     </li>

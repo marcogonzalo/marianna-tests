@@ -1,6 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.ck-editor__editable_inline:not(.ck-comment__input *) {
+  min-height: 90px;
+  max-height: 165px;
+  overflow-y: auto;
+}
+
 /*
 @layer base {
     :root {
