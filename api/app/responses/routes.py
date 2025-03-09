@@ -99,13 +99,15 @@ async def get_bulk_responses(
         assessment_dict = response_dict['assessment']
         response_dict['assessment'] = AssessmentRead.model_validate(
             assessment_dict)
-
+    print("response_dict", response_dict)
     if 'question_responses' in response_dict:
         question_responses_dict = response_dict['question_responses']
         validated_question_responses = []
+        print("question_responses_dict", question_responses_dict)
         for question_response in question_responses_dict:
             validated_question_responses.append(QuestionResponseRead.model_validate(
                 question_response))
+            print("validated_question_responses", validated_question_responses)
         response_dict['question_responses'] = validated_question_responses
 
     # Validate the complete response

@@ -31,7 +31,7 @@ class ChoiceCreate(BaseModel):
         return v
 
 
-class ChoiceRead(BaseModel):  # Change parent to BaseModel
+class ChoiceRead(BaseModel):
     id: int
     text: str
     value: float
@@ -102,8 +102,6 @@ class AssessmentBase(BaseModel):
     min_value: Optional[float] = None
     max_value: Optional[float] = None
     scoring_method: ScoringMethod
-    created_at: datetime = Field(default_factory=get_current_datetime)
-    updated_at: datetime = Field(default_factory=get_current_datetime)
 
     @field_validator('min_value', 'max_value')
     @classmethod
@@ -152,13 +150,6 @@ class AssessmentBase(BaseModel):
             info.data['max_value'] = 1.0
         return v
 
-    @field_validator('created_at', 'updated_at')
-    @classmethod
-    def ensure_timezone(cls, v: datetime) -> datetime:
-        if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v
-
 
 class DiagnosticCreate(BaseModel):
     min_value: Optional[float] = None
@@ -170,18 +161,22 @@ class DiagnosticRead(DiagnosticCreate):
     id: int
 
 
-class AssessmentCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    scoring_method: ScoringMethod
+class AssessmentCreate(AssessmentBase):
     questions: List[QuestionCreate] = []
 
 
 class AssessmentRead(AssessmentCreate):
     id: int
     questions: List[QuestionRead] = []
+    created_at: datetime = Field(default_factory=get_current_datetime)
+    updated_at: datetime = Field(default_factory=get_current_datetime)
+
+    @field_validator('created_at', 'updated_at')
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
 
 class AssessmentReadWithDiagnostics(AssessmentRead):
