@@ -227,6 +227,7 @@ async def create_assessment_response(
     session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
 ):
     from app.users.models import Examinee
+    from app.users.schemas import ExamineeRead, UserRead
     from app.responses.services import AssessmentResponseService
 
     # Verify assessment exists
@@ -245,6 +246,12 @@ async def create_assessment_response(
     session.add(assessment_response)
     session.commit()
     session.refresh(assessment_response)
+
+    await AssessmentResponseService.send_link_by_email(
+        response=AssessmentResponseRead.model_validate(assessment_response),
+        examinee=ExamineeRead.model_validate(assessment_response.examinee.model_dump()),
+        current_user=UserRead.model_validate(current_user)
+    )
 
     return AssessmentResponseRead(
         id=assessment_response.id,

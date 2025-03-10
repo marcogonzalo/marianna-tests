@@ -94,7 +94,7 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                                             title='Copy link'
                                             onClick={() =>
                                                 handleCopyUrl(
-                                                    `${window.location.origin}/private-response/${response.id}`,
+                                                    `${window.location.origin}/public/726573706f6e7365/${response.id}/70726976617465`,
                                                 )
                                             }
                                             variant="link"

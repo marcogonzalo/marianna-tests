@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
 from app.responses.models import ResponseStatus
@@ -55,7 +56,7 @@ async def get_assessment_responses(
 async def change_status(
     response_id: str,
     status_update: AssessmentResponseUpdate,
-    session: Session = Depends(get_session), 
+    session: Session = Depends(get_session),
     current_user=Depends(AuthService.get_current_active_user)
 ):
     # Pass the ID directly and let the service handle getting the database model
@@ -73,17 +74,25 @@ async def create_bulk_responses(
 ):
     assessment_response = AssessmentResponseService.create_question_responses_bulk(
         session, response_id, bulk_response)
-
+    if assessment_response.status == ResponseStatus.COMPLETED:
+        from app.users.schemas import ExamineeRead, UserRead
+        examinee = assessment_response.examinee
+        user = assessment_response.user
+        await AssessmentResponseService.notify_examinee_completed_assessment(
+            response=AssessmentResponseRead.model_validate(assessment_response),
+            examinee=ExamineeRead.model_validate(examinee.__dict__),
+            user=UserRead.model_validate(user)
+        )
     return AssessmentResponseRead.model_validate(assessment_response)
 
 
-@responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions)
+@ responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions)
 async def get_bulk_responses(
     response_id: str,
-    session: Session = Depends(get_session),
-    token: str | None = Depends(oauth2_scheme_optional)
+    session: Session=Depends(get_session),
+    token: str | None=Depends(oauth2_scheme_optional)
 ):
-    response_dict = AssessmentResponseService.get_assessment_response(
+    response_dict=AssessmentResponseService.get_assessment_response(
         session, response_id)
 
     if response_dict['status'] != ResponseStatus.PENDING:
@@ -96,19 +105,19 @@ async def get_bulk_responses(
 
     # Handle nested assessment validation
     if 'assessment' in response_dict:
-        assessment_dict = response_dict['assessment']
-        response_dict['assessment'] = AssessmentRead.model_validate(
+        assessment_dict=response_dict['assessment']
+        response_dict['assessment']=AssessmentRead.model_validate(
             assessment_dict)
     print("response_dict", response_dict)
     if 'question_responses' in response_dict:
-        question_responses_dict = response_dict['question_responses']
-        validated_question_responses = []
+        question_responses_dict=response_dict['question_responses']
+        validated_question_responses=[]
         print("question_responses_dict", question_responses_dict)
         for question_response in question_responses_dict:
             validated_question_responses.append(QuestionResponseRead.model_validate(
                 question_response))
             print("validated_question_responses", validated_question_responses)
-        response_dict['question_responses'] = validated_question_responses
+        response_dict['question_responses']=validated_question_responses
 
     # Validate the complete response
     return AssessmentResponseReadWithQuestions.model_validate(response_dict)

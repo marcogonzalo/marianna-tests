@@ -1,8 +1,13 @@
+import os
 from typing import List
 from pydantic import UUID4
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
+
+from app.users.schemas import ExamineeRead, UserRead
+from app.email_sender.services import EmailSender
+from app.users.models import Examinee, User
 from .models import AssessmentResponse, QuestionResponse, ResponseStatus
 from .schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseUpdate, BulkQuestionResponseCreate
 from app.assessments.models import Assessment, Question
@@ -134,9 +139,11 @@ class AssessmentResponseService:
         Creates multiple question responses in bulk and calculates the total score.
         """
         # Get the actual database model instance
-        assessment_response = session.get(AssessmentResponse, assessment_response_id)
+        assessment_response = session.get(
+            AssessmentResponse, assessment_response_id)
         if not assessment_response:
-            raise HTTPException(status_code=404, detail="Assessment response not found")
+            raise HTTPException(
+                status_code=404, detail="Assessment response not found")
 
         if assessment_response.status != ResponseStatus.PENDING:
             raise HTTPException(
@@ -167,7 +174,8 @@ class AssessmentResponseService:
         # Get the actual database model instance
         assessment_response = session.get(AssessmentResponse, response_id)
         if not assessment_response:
-            raise HTTPException(status_code=404, detail="Assessment response not found")
+            raise HTTPException(
+                status_code=404, detail="Assessment response not found")
 
         score_change = assessment_response.status == ResponseStatus.PENDING and status_update == ResponseStatus.COMPLETED and total_score is not None
         if score_change:
@@ -197,3 +205,24 @@ class AssessmentResponseService:
         }
 
         return new_status not in allowed_transitions.get(current_status, [])
+
+    @staticmethod
+    async def send_link_by_email(response: AssessmentResponseRead, examinee: ExamineeRead, current_user: UserRead) -> dict:
+        subject = f"Dr Jayaro needs you to complete the following questionnaire"
+        link = f"{os.getenv('CLIENT_URL')}/public/726573706f6e7365/{response.id}/70726976617465"
+        content = f"""
+            <p>Dear {examinee.first_name},</p>
+            <p>Dr Jayaro needs you to complete the following questionnaire in relation to your ASD assessment.</p>
+            <p><a href="{link}">{link}</a></p>
+            <p>The link would be active for 24 hours.</p>
+            <p>If you have any doubts please do not hesitate to ask the clinic.</p>
+            <hr/>
+            <p>Kind regards,</p>
+            <p>The Hazelton Clinic Team</p>
+        """
+        return await EmailSender.send_email(
+            sender=current_user.email,
+            receivers=examinee.email,
+            subject=subject,
+            content=content
+        )

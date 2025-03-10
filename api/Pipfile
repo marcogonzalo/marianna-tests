@@ -13,6 +13,7 @@ bcrypt = "==4.0.1"
 slowapi = "==0.1.9"
 python-jose = "3.4.0"
 alembic = "1.14.1"
+resend = "*"
 
 [dev-packages]
 pytest = "*"

@@ -63,7 +63,7 @@ const router = createBrowserRouter([
                 element: <LoginPage />,
             },
             {
-                path: '/private-response/:responseId',
+                path: '/public/726573706f6e7365/:responseId/70726976617465',
                 element: <PublicAssessmentResponsePage />,
             },
             {
