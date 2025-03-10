@@ -26,6 +26,7 @@ class AssessmentResponseService:
             assessment_id=response_data.assessment_id,
             examinee_id=response_data.examinee_id,
             status=response_data.status,
+            created_by=response_data.created_by,
             score=None
         )
 
@@ -162,7 +163,7 @@ class AssessmentResponseService:
             question_responses.append(question_response)
 
         assessment_response = AssessmentResponseService.update_assessment_response_status_and_score(
-            session, assessment_response, ResponseStatus.COMPLETED, total_score)
+            session, assessment_response.id, ResponseStatus.COMPLETED, total_score)
 
         return assessment_response
 
@@ -171,7 +172,6 @@ class AssessmentResponseService:
         """
         Updates the assessment response status and score.
         """
-        # Get the actual database model instance
         assessment_response = session.get(AssessmentResponse, response_id)
         if not assessment_response:
             raise HTTPException(
@@ -222,6 +222,26 @@ class AssessmentResponseService:
         """
         return await EmailSender.send_email(
             sender=current_user.email,
+            receivers=examinee.email,
+            subject=subject,
+            content=content
+        )
+
+
+    @staticmethod
+    async def notify_examinee_completed_assessment(response: AssessmentResponseRead, examinee: ExamineeRead, user: UserRead) -> AssessmentResponse:
+        subject = f"Dr Jayaro needs you to complete the following questionnaire"
+        link = f"{os.getenv('CLIENT_URL')}/responses/{response.id}"
+        content = f"""
+            <p>Hello,</p>
+            <p>The questionnaire has been completed by {examinee.first_name} {examinee.last_name}.</p>
+            <p>Now, you can go to the app to see the results here: <a href="{link}">{link}</a></p>
+            <hr/>
+            <p>Regards,</p>
+            <p>The Hazelton Clinic Team</p>
+        """
+        return await EmailSender.send_email(
+            sender=user.email,
             receivers=examinee.email,
             subject=subject,
             content=content

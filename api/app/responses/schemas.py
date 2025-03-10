@@ -12,6 +12,7 @@ class AssessmentResponseCreate(BaseModel):
     assessment_id: int
     status: ResponseStatus = ResponseStatus.PENDING
     examinee_id: UUID4
+    created_by: UUID4
 
 
 class AssessmentResponseUpdate(BaseModel):

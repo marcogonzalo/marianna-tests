@@ -77,7 +77,7 @@ async def create_bulk_responses(
     if assessment_response.status == ResponseStatus.COMPLETED:
         from app.users.schemas import ExamineeRead, UserRead
         examinee = assessment_response.examinee
-        user = assessment_response.user
+        user = assessment_response.creator.user
         await AssessmentResponseService.notify_examinee_completed_assessment(
             response=AssessmentResponseRead.model_validate(assessment_response),
             examinee=ExamineeRead.model_validate(examinee.__dict__),

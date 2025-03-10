@@ -241,7 +241,7 @@ async def create_assessment_response(
 
     # Create new assessment response
     assessment_response = AssessmentResponseService.create_assessment_response(
-        session, AssessmentResponseCreate(**assessment_response_params.model_dump(), assessment_id=assessment_id))
+        session, AssessmentResponseCreate(**assessment_response_params.model_dump(), assessment_id=assessment_id, created_by=current_user.account.id))
 
     session.add(assessment_response)
     session.commit()
@@ -253,12 +253,4 @@ async def create_assessment_response(
         current_user=UserRead.model_validate(current_user)
     )
 
-    return AssessmentResponseRead(
-        id=assessment_response.id,
-        assessment_id=assessment_response.assessment_id,
-        examinee_id=assessment_response.examinee_id,
-        status=assessment_response.status,
-        score=assessment_response.score,
-        created_at=assessment_response.created_at,
-        updated_at=assessment_response.updated_at
-    )
+    return AssessmentResponseRead.model_validate(assessment_response)
