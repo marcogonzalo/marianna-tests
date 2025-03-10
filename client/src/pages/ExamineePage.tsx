@@ -14,10 +14,13 @@ import {
     AssessmentResponse,
     ResponseStatus,
 } from '@/features/assessments/types';
+import { getAccount } from '@/features/users/api';
+import { Account } from '@/features/users/types';
 
 export default function ExamineeDetailPage() {
     const { id } = useParams<{ id: string }>();
     const [examinee, setExaminee] = useState<Examinee | null>(null);
+    const [account, setAccount] = useState<Account | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -30,7 +33,9 @@ export default function ExamineeDetailPage() {
             try {
                 if (!id) throw new Error('Examinee ID is required');
                 const data = await getExaminee(id);
-                setExaminee(data);
+                const account = await getAccount(data.createdBy);
+                setExaminee({ ...data });
+                setAccount(account);
                 setError(null);
             } catch (err) {
                 setError('Failed to load examinee data');
@@ -151,7 +156,7 @@ export default function ExamineeDetailPage() {
                                 </div>
                                 <div>
                                     <strong>Created By:</strong>{' '}
-                                    {examinee.created_by}
+                                    {account?.firstName} {account?.lastName}
                                 </div>
                                 <div>
                                     <strong>Comments:</strong>{' '}

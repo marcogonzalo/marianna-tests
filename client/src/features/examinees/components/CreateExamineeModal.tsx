@@ -74,7 +74,7 @@ export default function CreateExamineeModal({
                     )}
 
                     <form onSubmit={handleSubmit}>
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <FormInput
                                 label="First Name"
                                 required

@@ -9,12 +9,12 @@ import {
 } from './types';
 
 export async function getExaminees(): Promise<Examinee[]> {
-    const response = await fetchApi<Examinee[]>('/examinees');
+    const response = await fetchApi<ExamineeAPI[]>('/examinees');
     return transformKeys(response, toCamelCase) as Examinee[];
 }
 
 export async function getExaminee(id: string): Promise<Examinee> {
-    const response = await fetchApi<Examinee>(`/examinees/${id}`);
+    const response = await fetchApi<ExamineeAPI>(`/examinees/${id}`);
     return transformKeys(response, toCamelCase) as Examinee;
 }
 
@@ -37,7 +37,7 @@ export async function updateExaminee(
     data: UpdateExamineeRequest,
 ): Promise<Examinee> {
     const transformedData = transformKeys(data, toSnakeCase) as ExamineeAPI;
-    const response = await fetchApi<Examinee>(`/examinees/${id}`, {
+    const response = await fetchApi<ExamineeAPI>(`/examinees/${id}`, {
         method: 'PUT',
         body: JSON.stringify(transformedData),
     });
