@@ -74,8 +74,7 @@ class Examinee(SQLModel, table=True):
     email: EmailStr = Field(unique=True, nullable=False)
     internal_identifier: Optional[str] = Field(nullable=True)
     comments: Optional[str] = Field(sa_type=Text, nullable=True)
-    created_by: UUID4 = Field(foreign_key="account.id",
-                              unique=True, nullable=False)
+    created_by: UUID4 = Field(foreign_key="account.id", nullable=False)
     created_at: datetime = Field(
         default_factory=get_current_datetime,
         sa_type=DateTime(timezone=True)
