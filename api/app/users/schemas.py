@@ -97,8 +97,7 @@ class ExamineeBase(BaseModel):
 
 
 class ExamineeCreate(ExamineeBase):
-    created_by: UUID4
-    pass
+    created_by: Optional[UUID4] = None
 
 
 class ExamineeUpdate(ExamineeBase):

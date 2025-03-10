@@ -42,12 +42,14 @@ class AssessmentResponse(SQLModel, table=True):
     assessment_id: int = Field(foreign_key="assessment.id")
     examinee_id: UUID4 = Field(
         foreign_key="examinee.id", index=True, nullable=False)
+    created_by: UUID4 = Field(foreign_key="account.id", nullable=False)
 
     # Relationships
     assessment: Assessment = Relationship(back_populates="responses")
     question_responses: List["QuestionResponse"] = Relationship(
         back_populates="assessment_response")
     examinee: "Examinee" = Relationship(back_populates="assessment_responses")
+    creator: "Account" = Relationship()
 
     def __init__(self, **data):
         """
@@ -95,4 +97,4 @@ class QuestionResponse(SQLModel, table=True):
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
 
 
-from app.users.models import Examinee  # noqa
+from app.users.models import Account, Examinee  # noqa
