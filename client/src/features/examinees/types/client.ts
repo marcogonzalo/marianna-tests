@@ -17,7 +17,7 @@ export interface Examinee {
     birthDate: Date;
     email: string;
     internalIdentifier?: string;
-    created_by: string;
+    createdBy: string;
     comments?: string;
     createdAt: string; // Adjust the type based on your API response
 }

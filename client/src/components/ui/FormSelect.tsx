@@ -39,7 +39,7 @@ export default function FormSelect({
                     {description}
                 </Description>
             )}
-            <div className="mt-2 grid grid-cols-1">
+            <div className="grid grid-cols-1">
                 <Select
                     id={id}
                     value={value}

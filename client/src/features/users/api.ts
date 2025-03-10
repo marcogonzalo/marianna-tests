@@ -1,6 +1,6 @@
 import { fetchApi } from '@/lib/api';
-import { User, CreateUserRequest, UpdateUserRequest } from './types/client';
-import { UserAPI, UserAPIRequest } from './types/api';
+import { User, CreateUserRequest, UpdateUserRequest, Account } from './types/client';
+import { AccountAPI, UserAPI, UserAPIRequest } from './types/api';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
 
 export async function getUsers(): Promise<User[]> {
@@ -11,6 +11,11 @@ export async function getUsers(): Promise<User[]> {
 export async function getUser(id: string): Promise<User> {
     const response = await fetchApi<UserAPI>(`/users/${id}`);
     return transformKeys(response, toCamelCase) as User;
+}
+
+export async function getAccount(id: string): Promise<Account> {
+    const response = await fetchApi<AccountAPI>(`/accounts/${id}`);
+    return transformKeys(response, toCamelCase) as Account;
 }
 
 export async function createUser(data: CreateUserRequest): Promise<User> {
