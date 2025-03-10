@@ -123,7 +123,6 @@ def upgrade() -> None:
                         timezone=True), nullable=True),
                     sa.ForeignKeyConstraint(['created_by'], ['account.id'], ),
                     sa.PrimaryKeyConstraint('id'),
-                    sa.UniqueConstraint('created_by'),
                     sa.UniqueConstraint('email')
                     )
     op.create_index(op.f('ix_examinee_id'), 'examinee', ['id'], unique=True)
