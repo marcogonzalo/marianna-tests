@@ -12,6 +12,12 @@ export interface AssessmentAPI {
     questions?: QuestionAPI[];
 }
 
+
+export interface AssessmentUpdateAPI {
+    title: string;
+    description?: string;
+}
+
 export interface DiagnosticAPI {
     id?: number;
     assessment_id?: number;

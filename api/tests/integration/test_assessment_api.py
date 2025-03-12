@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from app.users.models import Examinee
 from app.assessments.models import Assessment
+from app.users.models import Account
 
 
 async def test_create_assessment(async_client: AsyncClient, auth_headers: dict):
@@ -51,20 +52,21 @@ async def test_get_assessment(async_client: AsyncClient, sample_assessment: Asse
 
 
 async def test_update_assessment(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
-    response = await async_client.put(
+    update_data = {
+        "title": "Updated Assessment Title",
+        "description": "Updated assessment description"
+    }
+    
+    response = await async_client.patch(
         f"/assessments/{sample_assessment.id}",
-        headers=auth_headers,
-        json={
-            "title": "Updated Assessment",
-            "description": "Updated Description",
-            "scoring_method": "boolean",
-            "min_value": 0,
-            "max_value": 1
-        }
+        json=update_data,
+        headers=auth_headers
     )
+    
     assert response.status_code == 200
     data = response.json()
-    assert data["title"] == "Updated Assessment"
+    assert data["title"] == "Updated Assessment Title"
+    assert data["description"] == "Updated assessment description"
 
 
 async def test_delete_assessment(async_client: AsyncClient, sample_assessment: Assessment, auth_headers: dict):
@@ -120,7 +122,7 @@ async def test_create_question_invalid_data(async_client: AsyncClient, sample_as
     assert response.status_code == 422
 
 
-async def test_assessment_response_workflow(async_client: AsyncClient, sample_assessment: Assessment, sample_examinee: Examinee, auth_headers: dict):
+async def test_assessment_response_workflow(async_client: AsyncClient, sample_assessment: Assessment, sample_examinee: Examinee, auth_headers: dict, sample_account: Account):
     # Create a question first with proper data
     question_response = await async_client.post(
         f"/assessments/{sample_assessment.id}/questions",
@@ -142,30 +144,34 @@ async def test_assessment_response_workflow(async_client: AsyncClient, sample_as
     response = await async_client.post(
         f"/assessments/{sample_assessment.id}/responses",
         headers=auth_headers,
-        json={"examinee_id": str(sample_examinee.id)}
+        json={
+            "examinee_id": str(sample_examinee.id),
+            "created_by": str(sample_account.id)
+        }
     )
     assert response.status_code == 200
-    # response_id = response.json()["id"]
+    response_data = response.json()
+    assert response_data["examinee_id"] == str(sample_examinee.id)
+    assert response_data["created_by"] == str(sample_account.id)
+    assert response_data["status"] == "pending"
 
     # Submit responses with proper structure
-    # bulk_response = await async_client.put(
-    #     f"/assessments/responses/{response_id}",
-    #     headers=auth_headers,
-    #     json={
-    #         "question_responses": [
-    #             {
-    #                 "question_id": question_id,
-    #                 "numeric_value": 1.0,
-    #                 "text_value": None
-    #             }
-    #         ]
-    #     }
-    # )
-    # assert bulk_response.status_code == 200
+    response_id = response_data["id"]
+    bulk_response = await async_client.put(
+        f"/responses/{response_id}",
+        headers=auth_headers,
+        json={
+            "question_responses": [
+                {
+                    "question_id": question_id,
+                    "numeric_value": 1.0,
+                    "text_value": None
+                }
+            ]
+        }
+    )
+    assert bulk_response.status_code == 200
 
-    # data = bulk_response.json()
-    # assert data["status"] == "completed"
-    # assert data["score"] == 1.0
-    # assert len(data["question_responses"]) == 1
-    # assert data["question_responses"][0]["question_id"] == question_id
-    # assert data["question_responses"][0]["numeric_value"] == 1.0
+    data = bulk_response.json()
+    assert data["status"] == "completed"
+    assert data["score"] == 1.0

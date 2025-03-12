@@ -10,6 +10,8 @@ import {
     ResponseStatus,
     Diagnostic,
     DiagnosticAPI,
+    AssessmentUpdate,
+    AssessmentUpdateAPI,
 } from '@/features/assessments/types/';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
 
@@ -168,3 +170,18 @@ export const createDiagnostic = async (
     );
     return transformKeys(data, toCamelCase) as Diagnostic;
 };
+
+export async function updateAssessment(
+    assessmentId: number,
+    data: AssessmentUpdate
+): Promise<Assessment> {
+    const transformedData = transformKeys(data, toSnakeCase) as AssessmentUpdateAPI;
+    const response = await fetchApi<AssessmentAPI>(
+        `/assessments/${assessmentId}`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify(transformedData),
+        },
+    );
+    return transformKeys(response, toCamelCase) as Assessment;
+}

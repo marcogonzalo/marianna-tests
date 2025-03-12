@@ -175,14 +175,15 @@ def sample_examinee(session: Session, sample_account: Account) -> Examinee:
 
 
 @pytest.fixture
-def sample_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee):
+def sample_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee, sample_account: Account):
     # Create a sample AssessmentResponse
     assessment_response = AssessmentResponse(
         assessment_id=sample_assessment.id,
         examinee_id=sample_examinee.id,
         status="pending",
         created_at=get_current_datetime(),
-        updated_at=get_current_datetime()
+        updated_at=get_current_datetime(),
+        created_by=sample_account.id
     )
     session.add(assessment_response)
     session.commit()
@@ -219,3 +220,13 @@ def auth_token(sample_user: User) -> str:
 @pytest.fixture
 def auth_headers(auth_token: str) -> dict:
     return {"Authorization": f"Bearer {auth_token}"}
+
+
+@pytest.fixture(autouse=True)
+def mock_email_service(monkeypatch):
+    """Mock the email service to prevent actual email sending during tests."""
+    async def mock_send_email(*args, **kwargs):
+        return {"id": "mock_email_id"}
+
+    from app.email_sender.services import EmailSender
+    monkeypatch.setattr(EmailSender, "send_email", mock_send_email)

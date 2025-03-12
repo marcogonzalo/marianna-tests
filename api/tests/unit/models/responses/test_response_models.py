@@ -4,11 +4,12 @@ from app.responses.models import AssessmentResponse, QuestionResponse
 from sqlmodel import Session
 
 
-def test_assessment_response_creation(session: Session, sample_assessment, sample_examinee):
+def test_assessment_response_creation(session: Session, sample_assessment, sample_examinee, sample_account):
     assessment_response = AssessmentResponse(
         assessment_id=sample_assessment.id,
         examinee_id=sample_examinee.id,
         status="pending",
+        created_by=sample_account.id
     )
     session.add(assessment_response)
     session.commit()
@@ -18,6 +19,7 @@ def test_assessment_response_creation(session: Session, sample_assessment, sampl
     assert assessment_response.assessment_id == sample_assessment.id
     assert assessment_response.examinee_id == sample_examinee.id
     assert assessment_response.status == "pending"
+    assert assessment_response.created_by == sample_account.id
     assert isinstance(assessment_response.created_at, datetime)
     # assert assessment_response.created_at.tzinfo is not None
     # assert assessment_response.created_at.tzinfo == timezone.utc

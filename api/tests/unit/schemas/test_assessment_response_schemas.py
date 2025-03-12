@@ -19,18 +19,21 @@ def test_assessment_response_create_validation():
     response = AssessmentResponseCreate(
         assessment_id=1,
         examinee_id=uuid4(),
-        status=ResponseStatus.PENDING
+        status=ResponseStatus.PENDING,
+        created_by=uuid4()
     )
     assert response.assessment_id == 1
     assert response.examinee_id is not None
     assert response.status == ResponseStatus.PENDING
+    assert response.created_by is not None
 
     # Invalid assessment response (missing examinee_id)
     with pytest.raises(ValidationError):
         AssessmentResponseCreate(
             assessment_id=1,
             examinee_id=None,  # Invalid UUID
-            status=ResponseStatus.PENDING
+            status=ResponseStatus.PENDING,
+            created_by=uuid4()
         )
 
 
@@ -64,7 +67,8 @@ def test_assessment_response_read_with__validation(sample_assessment: Assessment
         assessment_id=sample_assessment.id,
         assessment=assessment_read,
         question_responses=[],
-        examinee_id=uuid4()
+        examinee_id=uuid4(),
+        created_by=uuid4()
     )
     assert response.id == "some_id"
     assert response.status == ResponseStatus.PENDING

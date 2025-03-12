@@ -43,7 +43,7 @@ class AssessmentResponseService:
                 status_code=404, detail="Assessment response not found")
 
         # Update the fields
-        for key, value in update_data.dict(exclude_unset=True).items():
+        for key, value in update_data.items():
             setattr(assessment_response, key, value)
 
         session.add(assessment_response)

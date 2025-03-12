@@ -165,6 +165,11 @@ class AssessmentCreate(AssessmentBase):
     questions: List[QuestionCreate] = []
 
 
+class AssessmentUpdate(BaseModel):
+    title: Optional[str]
+    description: Optional[str]
+
+
 class AssessmentRead(AssessmentCreate):
     id: int
     questions: List[QuestionRead] = []
