@@ -19,6 +19,7 @@ class UserAccountCreate(BaseModel):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+    account: Optional["AccountCreate"] = None
 
 
 class UserRead(BaseModel):
@@ -52,17 +53,12 @@ class AccountCreate(BaseModel):
         return v.strip()
 
 
-class AccountUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    role: Optional[UserRole] = None
+class AccountUpdate(AccountCreate):
+    pass
 
 
-class AccountRead(BaseModel):
+class AccountRead(AccountCreate):
     id: UUID4
-    first_name: str
-    last_name: str
-    role: UserRole
     user_id: UUID4
     created_at: datetime = Field(default_factory=get_current_datetime)
     updated_at: datetime = Field(default_factory=get_current_datetime)

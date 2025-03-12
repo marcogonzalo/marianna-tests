@@ -142,6 +142,18 @@ def sample_user(session: Session) -> User:
 
 
 @pytest.fixture
+def sample_admin_user(session: Session) -> User:
+    user = User(
+        email="admin@example.com",
+        password_hash=get_password_hash("hashedpassword123")
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture
 def sample_account(session: Session, sample_user: User) -> Account:
     from app.users.models import Account
     from app.users.enums import UserRole
@@ -151,6 +163,24 @@ def sample_account(session: Session, sample_user: User) -> Account:
         first_name="John",
         last_name="Doe",
         role=UserRole.ASSESSMENT_DEVELOPER
+    )
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+    return account
+
+
+
+@pytest.fixture
+def sample_admin_account(session: Session, sample_admin_user: User) -> Account:
+    from app.users.models import Account
+    from app.users.enums import UserRole
+
+    account = Account(
+        user_id=sample_admin_user.id,
+        first_name="Admin",
+        last_name="Doe",
+        role=UserRole.ADMIN
     )
     session.add(account)
     session.commit()
@@ -216,10 +246,28 @@ def auth_token(sample_user: User) -> str:
     )
     return access_token
 
+@pytest.fixture
+def auth_token_admin(session: Session, sample_admin_user: User, sample_admin_account: Account) -> str:
+    from app.auth.services import AuthService
+    sample_admin_account.user = sample_admin_user
+    session.add(sample_admin_account)
+    session.commit()
+    session.refresh(sample_admin_account)
+    access_token = AuthService.create_access_token(
+        data={"sub": sample_admin_user.email},
+        expires_delta=timedelta(minutes=30)
+    )
+    return access_token
+
 
 @pytest.fixture
 def auth_headers(auth_token: str) -> dict:
     return {"Authorization": f"Bearer {auth_token}"}
+
+
+@pytest.fixture
+def auth_headers_admin(auth_token_admin: str) -> dict:
+    return {"Authorization": f"Bearer {auth_token_admin}"}
 
 
 @pytest.fixture(autouse=True)

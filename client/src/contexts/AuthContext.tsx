@@ -4,6 +4,7 @@ import { User } from '../features/auth/types/client';
 import {
     login as performLogin,
     logout as performLogout,
+    getCurrentUser,
 } from '@/features/auth/api';
 
 interface AuthContextType {
@@ -25,16 +26,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     const storeToken = (token: string | null) => {
-        console.log(token);
         setToken(token);
         if (token === null) sessionStorage.removeItem('token');
         else sessionStorage.setItem('token', token);
     };
     const storeUser = (user: User | null) => {
-        console.log(user);
         setUser(user);
         if (user === null) sessionStorage.removeItem('user');
         else sessionStorage.setItem('user', JSON.stringify(user));
+    };
+
+    const fetchCurrentUser = async () => {
+        try {
+            const user = await getCurrentUser();
+            storeUser(user);
+        } catch (err) {
+            console.error('Error fetching user:', err);
+        }
     };
 
     const login = async (email: string, password: string) => {
@@ -43,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             password: password,
         });
         storeToken(response.accessToken);
-        storeUser({ email: response.email });
+        await fetchCurrentUser();
     };
 
     const logout = async () => {

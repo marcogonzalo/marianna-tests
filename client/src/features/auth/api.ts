@@ -1,7 +1,7 @@
 import { fetchApi } from '@/lib/api';
-import { AuthResponseAPI, LoginCredentialsAPI } from './types/api';
+import { AuthResponseAPI, LoginCredentialsAPI, UserAPI } from './types/api';
 import { transformKeys, toCamelCase } from '@/utils/transformKeys';
-import { AuthResponse } from './types/client';
+import { AuthResponse, User } from './types/client';
 
 export async function login(
     credentials: LoginCredentialsAPI,
@@ -28,4 +28,9 @@ export async function logout(token: string): Promise<void> {
             Authorization: `Bearer ${token}`,
         },
     });
+}
+
+export async function getCurrentUser(): Promise<User> {
+    const response = await fetchApi<UserAPI>('/users/me');
+    return transformKeys(response, toCamelCase) as User;
 }

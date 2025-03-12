@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import { deleteUser, getUsers } from '@/features/users/api';
-import { User } from '@/features/users/types';
+import { User } from '@/features/users/types/client';
 import { Page } from '../layouts/components/Page';
 import { FormButton } from '@/components/ui';
 import { CreateUserModal } from '@/features/users/components/CreateUserModal';
+import EditUserModal from '@/features/users/components/EditUserModal';
+import { TrashIcon, PencilIcon } from '@heroicons/react/20/solid';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/features/users/types/shared';
 
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const { user: currentUser } = useAuth();
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -56,6 +63,25 @@ export default function UsersPage() {
                     console.error('Error deleting user:', err);
                     setError('Failed to delete user');
                 });
+        }
+    };
+
+    const handleEditUser = (user: User) => {
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUserUpdated = async () => {
+        setLoading(true);
+        try {
+            await populateUsers();
+        } catch (err) {
+            setError('Failed to reload users');
+            console.error(err);
+        } finally {
+            setLoading(false);
+            setIsEditModalOpen(false);
+            setSelectedUser(null);
         }
     };
 
@@ -141,15 +167,26 @@ export default function UsersPage() {
                                     ).toLocaleDateString()}
                                 </td>
                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                    <FormButton
-                                        variant="link"
-                                        className="text-red-600 hover:text-red-800"
-                                        onClick={() =>
-                                            handleUserDeleted(user.id)
-                                        }
-                                    >
-                                        Delete
-                                    </FormButton>
+                                    {currentUser?.account?.role === UserRole.ADMIN && (
+                                        <div className="flex justify-end space-x-2">
+                                            <FormButton
+                                                variant="link"
+                                                className="text-indigo-600 hover:text-indigo-800"
+                                                onClick={() => handleEditUser(user)}
+                                            >
+                                                <PencilIcon className="h-5 w-5" />
+                                            </FormButton>
+                                            <FormButton
+                                                variant="link"
+                                                className="text-red-600 hover:text-red-800"
+                                                onClick={() =>
+                                                    handleUserDeleted(user.id)
+                                                }
+                                            >
+                                                <TrashIcon className="h-5 w-5" />
+                                            </FormButton>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -162,6 +199,18 @@ export default function UsersPage() {
                 onClose={() => onCloseModal()}
                 onUserCreated={handleUserCreated}
             />
+
+            {selectedUser && (
+                <EditUserModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedUser(null);
+                    }}
+                    user={selectedUser}
+                    onUserUpdated={handleUserUpdated}
+                />
+            )}
         </Page>
     );
 }

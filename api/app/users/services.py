@@ -63,15 +63,30 @@ class UserService:
 
     @staticmethod
     def update_user(session: Session, id: str, user: UserUpdate) -> Optional[UserRead]:
-        db_user = session.query(User).filter(User.id == id).first()
+        print("*********", user)
+        db_user = session.query(User).filter(User.id == id).options(joinedload(User.account)).first()
         if db_user:
             update_data = user.model_dump(exclude_unset=True)
+            print("*********", update_data)
             if "password" in update_data:
                 update_data["password_hash"] = get_password_hash(
                     update_data.pop("password"))
+            
+            # Handle account update
+            account_data = update_data.pop("account", None)
+            if account_data:
+                if db_user.account:
+                    for key, value in account_data.items():
+                        setattr(db_user.account, key, value)
+                    db_user.account.updated_at = datetime.utcnow()
+                else:
+                    db_user.account = Account(**account_data, user_id=db_user.id)
+
+            # Update user fields
             for key, value in update_data.items():
                 setattr(db_user, key, value)
             db_user.updated_at = datetime.utcnow()
+            
             session.commit()
             session.refresh(db_user)
             return UserRead.model_validate(db_user)

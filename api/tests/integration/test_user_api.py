@@ -4,13 +4,12 @@ from app.users.models import User, Account
 from app.users.enums import UserRole
 
 
-def test_create_user(client: TestClient, auth_headers: dict):
-    # Creating user doesn't require authentication
+def test_create_user(client: TestClient, auth_headers_admin: dict):
     response = client.post(
         "/users/",
         json={"email": "non-existing-user@example.com",
               "password": "password123"},
-        headers=auth_headers
+        headers=auth_headers_admin
     )
     assert response.status_code == 200
     data = response.json()
@@ -20,12 +19,22 @@ def test_create_user(client: TestClient, auth_headers: dict):
     assert "updated_at" in data
 
 
-def test_create_duplicate_user(client: TestClient, sample_user: User, auth_headers: dict):
+def test_no_admin_create_user(client: TestClient, auth_headers: dict, sample_account: Account):
+    response = client.post(
+        "/users/",
+        json={"email": "non-existing-user@example.com",
+              "password": "password123"},
+        headers=auth_headers
+    )
+    assert response.status_code == 403
+
+
+def test_create_duplicate_user(client: TestClient, sample_user: User, auth_headers_admin: dict):
     # Creating user doesn't require authentication
     response = client.post(
         "/users/",
         json={"email": sample_user.email, "password": "password123"},
-        headers=auth_headers
+        headers=auth_headers_admin
     )
     assert response.status_code == 400
 
@@ -39,7 +48,7 @@ def test_read_users(client: TestClient, sample_user: User, auth_headers: dict):
     assert any(user["email"] == sample_user.email for user in data)
 
 
-def test_create_account(client: TestClient, sample_user: User, auth_headers: dict):
+def test_create_account(client: TestClient, sample_user: User, auth_headers_admin: dict):
     response = client.post(
         "/accounts/",
         params={"user_id": sample_user.id},
@@ -48,7 +57,7 @@ def test_create_account(client: TestClient, sample_user: User, auth_headers: dic
             "last_name": "Doe",
             "role": UserRole.ASSESSMENT_DEVELOPER.value
         },
-        headers=auth_headers
+        headers=auth_headers_admin
     )
     assert response.status_code == 200
     data = response.json()

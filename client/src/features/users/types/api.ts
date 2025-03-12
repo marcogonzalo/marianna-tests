@@ -5,6 +5,7 @@ export interface UserAPI {
     email: string;
     created_at: string;
     updated_at: string;
+    deleted_at?: string;
     account?: AccountAPI;
 }
 
@@ -28,4 +29,9 @@ export interface AccountAPIRequest {
     first_name: string;
     last_name: string;
     role: UserRole;
+}
+
+export interface UserUpdateAPI {
+    email?: string;
+    account?: AccountAPIRequest;
 }
