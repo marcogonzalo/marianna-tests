@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 import os
 from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlmodel import Session, select
+from app.users.enums import UserRole
 from database import get_session
 from app.users.models import User
 from .models import TokenBlacklist
@@ -121,4 +121,22 @@ class AuthService:
         user = await current_user
         if user.deleted_at is not None:
             raise HTTPException(status_code=400, detail="Inactive user")
+        return user
+
+
+    @staticmethod
+    async def get_current_admin_user(
+        current_user=Depends(get_current_active_user)
+    ):
+        user = await current_user
+        if not user.account:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: User has no associated account"
+            )
+        if user.account.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: Only admins can perform this action"
+            )
         return user

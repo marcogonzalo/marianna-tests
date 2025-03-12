@@ -1,7 +1,8 @@
 import { fetchApi } from '@/lib/api';
 import { User, CreateUserRequest, UpdateUserRequest, Account } from './types/client';
-import { AccountAPI, UserAPI, UserAPIRequest } from './types/api';
+import { AccountAPI, UserAPI, UserAPIRequest, UserUpdateAPI } from './types/api';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
+import { UserRole } from './types';
 
 export async function getUsers(): Promise<User[]> {
     const response = await fetchApi<UserAPI[]>('/users');
@@ -31,11 +32,14 @@ export async function updateUser(
     id: string,
     data: UpdateUserRequest,
 ): Promise<User> {
-    const transformedData = transformKeys(data, toSnakeCase) as UserAPI;
+    console.log("*********", data);
+    const transformedData = transformKeys(data, toSnakeCase) as UserUpdateAPI;
+    console.log("*********", transformedData);
     const response = await fetchApi<UserAPI>(`/users/${id}`, {
         method: 'PUT',
         body: JSON.stringify(transformedData),
     });
+    console.log("*********", response);
     return transformKeys(response, toCamelCase) as User;
 }
 
@@ -46,12 +50,7 @@ export async function deleteUser(id: string): Promise<void> {
 }
 
 export const restoreUser = async (userId: string): Promise<void> => {
-    // const response =
     await fetchApi(`/users/${userId}/restore`, {
         method: 'POST',
     });
-
-    // if (!response?.ok) {
-    //     throw new Error('Failed to restore user');
-    // }
 };

@@ -9,6 +9,7 @@ from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, Acc
 from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
 from .services import ExamineeService
+from .enums import UserRole
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
@@ -16,7 +17,7 @@ examinees_router = APIRouter(prefix="/examinees", tags=["examinees"])
 
 
 @users_router.post("/", response_model=UserRead)
-def create_user(user: UserAccountCreate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def create_user(user: UserAccountCreate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     db_user = UserService.get_user_by_email(session, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -29,6 +30,11 @@ def read_users(skip: int = 0, limit: int = 100, session: Session = Depends(get_s
     return users
 
 
+@users_router.get("/me", response_model=UserRead)
+def read_current_user(current_user=Depends(AuthService.get_current_active_user)):
+    return current_user
+
+
 @users_router.get("/{id}", response_model=UserRead)
 def read_user(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
     db_user = UserService.get_user(session, id=id)
@@ -38,7 +44,7 @@ def read_user(id: UUID4, session: Session = Depends(get_session), current_user=D
 
 
 @users_router.put("/{id}", response_model=UserRead)
-def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     db_user = UserService.update_user(session, id=id, user=user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -46,7 +52,7 @@ def update_user(id: UUID4, user: UserUpdate, session: Session = Depends(get_sess
 
 
 @users_router.delete("/{id}")
-def delete_user(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def delete_user(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     success = UserService.delete_user(session, id=id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
@@ -62,7 +68,7 @@ def delete_user(id: UUID4, session: Session = Depends(get_session), current_user
 
 
 @accounts_router.post("/", response_model=AccountRead)
-def create_account(account: AccountCreate, user_id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def create_account(account: AccountCreate, user_id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     return AccountService.create_account(session=session, account=account, user_id=user_id)
 
 
@@ -81,7 +87,7 @@ def read_account(id: UUID4, session: Session = Depends(get_session), current_use
 
 
 @accounts_router.put("/{id}", response_model=AccountRead)
-def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     db_account = AccountService.update_account(session, id=id, account=account)
     if db_account is None:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -89,7 +95,7 @@ def update_account(id: UUID4, account: AccountUpdate, session: Session = Depends
 
 
 @accounts_router.delete("/{id}")
-def delete_account(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
+def delete_account(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_admin_user)):
     success = AccountService.delete_account(session, id=id)
     if not success:
         raise HTTPException(status_code=404, detail="Account not found")

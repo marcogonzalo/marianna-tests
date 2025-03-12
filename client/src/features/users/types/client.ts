@@ -27,9 +27,7 @@ export interface CreateUserRequest {
 
 export interface UpdateUserRequest {
     email?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: UserRole;
+    account?: CreateAccountRequest;
 }
 
 export interface CreateAccountRequest {
