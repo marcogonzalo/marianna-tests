@@ -8,7 +8,7 @@ from app.responses.schemas import (
 )
 from .models import Assessment, Question, ScoringMethod, Diagnostic
 from .schemas import (
-    AssessmentCreate, AssessmentRead,
+    AssessmentCreate, AssessmentRead, AssessmentUpdate,
     QuestionCreate, QuestionRead,
     QuestionUpdate, DiagnosticCreate, DiagnosticRead
 )
@@ -59,18 +59,21 @@ async def get_assessment(assessment_id: int, session: Session = Depends(get_sess
     return assessment
 
 
-# Protected endpoint - requires authentication
-@assessments_router.put("/{assessment_id}", response_model=AssessmentRead)
+@assessments_router.patch("/{assessment_id}", response_model=AssessmentRead)
 async def update_assessment(
     assessment_id: int,
-    assessment_update: AssessmentCreate,
-    session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)
+    assessment_update: AssessmentUpdate,
+    session: Session = Depends(get_session), 
+    current_user=Depends(AuthService.get_current_active_user)
 ):
     db_assessment = session.get(Assessment, assessment_id)
     if not db_assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
-    assessment_data = assessment_update.dict(exclude_unset=True)
+    assessment_data = assessment_update.model_dump(exclude_unset=True)
+    if not assessment_data:
+        raise HTTPException(status_code=400, detail="No values provided for update")
+
     for key, value in assessment_data.items():
         setattr(db_assessment, key, value)
 

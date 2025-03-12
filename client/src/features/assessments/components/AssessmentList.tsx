@@ -2,13 +2,24 @@ import { useNavigate } from 'react-router-dom';
 import { FormButton } from '@/components/ui';
 import AssessmentCard from './AssessmentCard';
 import { Assessment } from '@/features/assessments/types/client';
+import { updateAssessment } from '@/features/assessments/api';
 
 interface AssessmentListProps {
     assessments: Assessment[];
+    onAssessmentUpdated?: () => void;
 }
 
-export default function AssessmentList({ assessments }: AssessmentListProps) {
+export default function AssessmentList({ assessments, onAssessmentUpdated }: AssessmentListProps) {
     const navigate = useNavigate();
+
+    const handleUpdate = async (assessment: Assessment) => {
+        try {
+            await updateAssessment(assessment.id!, assessment);
+            onAssessmentUpdated?.();
+        } catch (error) {
+            console.error('Error updating assessment:', error);
+        }
+    };
 
     if (assessments.length === 0) {
         return (
@@ -38,6 +49,7 @@ export default function AssessmentList({ assessments }: AssessmentListProps) {
                     key={assessment.id}
                     assessment={assessment}
                     onClick={() => navigate(`/assessments/${assessment.id}`)}
+                    onUpdate={handleUpdate}
                 />
             ))}
         </div>

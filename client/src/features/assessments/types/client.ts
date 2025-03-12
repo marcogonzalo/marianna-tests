@@ -12,6 +12,13 @@ export interface Assessment {
     questions?: Question[];
 }
 
+
+export interface AssessmentUpdate {
+    title: string;
+    description?: string;
+}
+
+
 export interface Question {
     id?: number;
     text: string;
