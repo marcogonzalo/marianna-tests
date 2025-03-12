@@ -16,6 +16,8 @@ import {
 } from '@/features/assessments/types';
 import { getAccount } from '@/features/users/api';
 import { Account } from '@/features/users/types';
+import EditExamineeModal from '@/features/examinees/components/EditExamineeModal';
+import { PencilIcon } from '@heroicons/react/24/outline';
 
 export default function ExamineeDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -24,6 +26,7 @@ export default function ExamineeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [assessmentResponses, setAssessmentResponses] = useState<
         AssessmentResponse[]
     >([]);
@@ -127,9 +130,17 @@ export default function ExamineeDetailPage() {
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="bg-white shadow-sm rounded-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-4">
-                            Examinee Details
-                        </h2>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-semibold">
+                                Examinee Details
+                            </h2>
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+                            >
+                                <PencilIcon className="h-5 w-5" />
+                            </button>
+                        </div>
                         <div className="grid grid-cols-2">
                             <div className="">
                                 <div>
@@ -175,14 +186,23 @@ export default function ExamineeDetailPage() {
                     </div>
                 </div>
                 <AssessmentResponseList
-                    responses={assessmentResponses} // Assuming this is the structure of your examinee data
-                    onStatusChange={handleStatusChange} // Define this function to handle status changes
+                    responses={assessmentResponses}
+                    onStatusChange={handleStatusChange}
                 />
             </div>
             <AssignAssessmentModal
                 isOpen={isAssignModalOpen}
                 onClose={handleCloseModal}
                 examineeId={examinee.id}
+            />
+            <EditExamineeModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                examinee={examinee}
+                onExamineeUpdated={(updatedExaminee) => {
+                    setExaminee(updatedExaminee);
+                    setIsEditModalOpen(false);
+                }}
             />
         </Page>
     );
