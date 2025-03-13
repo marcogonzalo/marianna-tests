@@ -32,14 +32,11 @@ export async function updateUser(
     id: string,
     data: UpdateUserRequest,
 ): Promise<User> {
-    console.log("*********", data);
     const transformedData = transformKeys(data, toSnakeCase) as UserUpdateAPI;
-    console.log("*********", transformedData);
     const response = await fetchApi<UserAPI>(`/users/${id}`, {
         method: 'PUT',
         body: JSON.stringify(transformedData),
     });
-    console.log("*********", response);
     return transformKeys(response, toCamelCase) as User;
 }
 

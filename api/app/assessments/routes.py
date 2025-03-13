@@ -131,6 +131,60 @@ async def list_questions(assessment_id: int, session: Session = Depends(get_sess
     return questions
 
 
+@assessments_router.put("/{assessment_id}/questions/bulk", response_model=List[QuestionRead])
+async def bulk_update_questions(
+    assessment_id: int,
+    questions: List[QuestionUpdate],
+    session: Session = Depends(get_session),
+    current_user=Depends(AuthService.get_current_active_user)
+):
+    # Get existing questions
+    existing_questions = session.exec(
+        select(Question).where(Question.assessment_id == assessment_id)
+    ).all()
+
+    # Create a map of existing questions by ID
+    existing_questions_map = {q.id: q for q in existing_questions}
+
+    # Track which questions we've processed
+    processed_ids = set()
+    
+    updated_questions = []
+    
+    for question_data in questions:
+        if question_data.id and question_data.id in existing_questions_map:
+            # Update existing question
+            question = existing_questions_map[question_data.id]
+            question.update_attributes(question_data)
+            processed_ids.add(question_data.id)
+        else:
+            # Create new question
+            new_question = Question(
+                text=question_data.text,
+                order=question_data.order,
+                assessment_id=assessment_id
+            )
+            session.add(new_question)
+            session.flush()  # Get the ID for the new question
+            question = new_question
+        
+        question.alter_choice_list(question_data.choices, session)
+        updated_questions.append(question)
+    
+    # Delete questions that weren't in the update list
+    for question_id, question in existing_questions_map.items():
+        if question_id not in processed_ids:
+            session.delete(question)
+    
+    session.commit()
+    
+    # Refresh all questions to get their updated state
+    for question in updated_questions:
+        session.refresh(question)
+    
+    return updated_questions
+
+
 @assessments_router.get("/{assessment_id}/questions/{question_id}", response_model=QuestionRead)
 async def get_question(
     assessment_id: int,

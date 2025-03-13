@@ -185,3 +185,18 @@ export async function updateAssessment(
     );
     return transformKeys(response, toCamelCase) as Assessment;
 }
+
+export async function bulkUpdateQuestions(
+    assessmentId: number,
+    questions: Question[]
+): Promise<Question[]> {
+    const transformedData = transformKeys(questions, toSnakeCase) as QuestionAPI[];
+    const response = await fetchApi<QuestionAPI[]>(
+        `/assessments/${assessmentId}/questions/bulk`,
+        {
+            method: 'PUT',
+            body: JSON.stringify(transformedData),
+        },
+    );
+    return transformKeys(response, toCamelCase) as Question[];
+}

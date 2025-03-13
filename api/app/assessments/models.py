@@ -142,6 +142,7 @@ class Question(SQLModel, table=True):
 
     def update_choices(self, choices: List["Choice"], session: Session) -> List[int]:
         updated_choice_ids = set()
+
         for choice_data in choices:
             # Handle both SQLModel Choice instances and ChoiceCreate schema instances
             choice_dict = choice_data.dict() if hasattr(

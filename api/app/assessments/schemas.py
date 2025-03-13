@@ -92,6 +92,7 @@ class QuestionRead(BaseModel):
 
 
 class QuestionUpdate(QuestionCreate):
+    id: Optional[int]
     choices: List[ChoiceUpdate]
 
 
