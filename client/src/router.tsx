@@ -12,6 +12,8 @@ import PrivateLayout from './layouts/PrivateLayout';
 import PublicLayout from './layouts/PublicLayout';
 import LoginPage from './pages/public/LoginPage';
 import LogoutPage from './pages/public/LogoutPage';
+import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
+import ResetPasswordPage from './pages/public/ResetPasswordPage';
 
 const router = createBrowserRouter([
     {
@@ -69,6 +71,14 @@ const router = createBrowserRouter([
             {
                 path: '/logout',
                 element: <LogoutPage />,
+            },
+            {
+                path: '/forgot-password',
+                element: <ForgotPasswordPage />,
+            },
+            {
+                path: '/reset-password',
+                element: <ResetPasswordPage />,
             },
         ],
     },

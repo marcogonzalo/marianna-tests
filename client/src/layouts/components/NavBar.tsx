@@ -18,12 +18,9 @@ const navigation = [
     { name: 'Assessments', href: '/assessments' },
     { name: 'Examinees', href: '/examinees' },
     { name: 'Users', href: '/users' },
-    { name: 'Calendar', href: '#' },
-    { name: 'Reports', href: '#' },
 ];
 const userNavigation = [
     { label: 'Your Profile', value: '#' },
-    { label: 'Settings', value: '#' },
     { label: 'Sign out', value: '/logout' },
 ];
 
@@ -151,14 +148,14 @@ export function NavBar() {
                                 {user.email}
                             </div>
                         </div>
-                        <button
+                        {/* <button
                             type="button"
                             className="relative ml-auto shrink-0 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
                         >
                             <span className="absolute -inset-1.5" />
                             <span className="sr-only">View notifications</span>
                             <BellIcon aria-hidden="true" className="size-6" />
-                        </button>
+                        </button> */}
                     </div>
                     <div className="mt-3 space-y-1 px-2">
                         {userNavigation.map((item) => (

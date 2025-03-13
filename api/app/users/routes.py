@@ -9,7 +9,6 @@ from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, Acc
 from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
 from .services import ExamineeService
-from .enums import UserRole
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])

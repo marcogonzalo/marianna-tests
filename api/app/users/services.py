@@ -1,10 +1,12 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from pydantic import UUID4
+import secrets
 from sqlalchemy.orm import Session, joinedload
 from .models import User, Account, Examinee
 from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate, ExamineeCreate, ExamineeRead, ExamineeUpdate
-from app.utils.password import get_password_hash
+from app.utils.password import get_password_hash, validate_password
+from fastapi import HTTPException
 
 
 class UserService:
@@ -63,15 +65,14 @@ class UserService:
 
     @staticmethod
     def update_user(session: Session, id: str, user: UserUpdate) -> Optional[UserRead]:
-        print("*********", user)
-        db_user = session.query(User).filter(User.id == id).options(joinedload(User.account)).first()
+        db_user = session.query(User).filter(
+            User.id == id).options(joinedload(User.account)).first()
         if db_user:
             update_data = user.model_dump(exclude_unset=True)
-            print("*********", update_data)
             if "password" in update_data:
                 update_data["password_hash"] = get_password_hash(
                     update_data.pop("password"))
-            
+
             # Handle account update
             account_data = update_data.pop("account", None)
             if account_data:
@@ -80,13 +81,14 @@ class UserService:
                         setattr(db_user.account, key, value)
                     db_user.account.updated_at = datetime.utcnow()
                 else:
-                    db_user.account = Account(**account_data, user_id=db_user.id)
+                    db_user.account = Account(
+                        **account_data, user_id=db_user.id)
 
             # Update user fields
             for key, value in update_data.items():
                 setattr(db_user, key, value)
             db_user.updated_at = datetime.utcnow()
-            
+
             session.commit()
             session.refresh(db_user)
             return UserRead.model_validate(db_user)
@@ -114,6 +116,49 @@ class UserService:
             session.commit()
             return True
         return False
+
+    @staticmethod
+    def generate_reset_token() -> str:
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def create_password_reset_token(session: Session, email: str) -> str:
+        user = UserService.get_user_by_email(session, email)
+        if not user:
+            # We don't want to reveal if the email exists or not
+            return None
+
+        token = UserService.generate_reset_token()
+        user.reset_password_token = token
+        user.reset_password_expires = datetime.now(
+            timezone.utc) + timedelta(hours=4)
+
+        session.commit()
+        return token
+
+    @staticmethod
+    def reset_password(session: Session, token: str, new_password: str) -> bool:
+        # First validate the password
+        is_valid, error_message = validate_password(new_password)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_message)
+
+        user = session.query(User).filter(
+            User.reset_password_token == token,
+            User.reset_password_expires > datetime.now(timezone.utc)
+        ).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=400, detail="Invalid or expired token")
+
+        user.password_hash = get_password_hash(new_password)
+        user.reset_password_token = None
+        user.reset_password_expires = None
+        user.updated_at = datetime.now(timezone.utc)
+
+        session.commit()
+        return True
 
 
 class AccountService:

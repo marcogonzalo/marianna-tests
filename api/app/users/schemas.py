@@ -1,8 +1,24 @@
 from datetime import date, datetime, timedelta, timezone
-from pydantic import BaseModel, EmailStr, UUID4, Field, field_validator
+from pydantic import BaseModel, EmailStr, UUID4, Field, field_validator, constr
 from typing import Optional
 from .enums import Gender, UserRole
 from app.utils.datetime import get_current_datetime
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    password: str
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
 
 
 class UserCreate(BaseModel):

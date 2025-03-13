@@ -4,9 +4,12 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from sqlmodel import Session, select
-from app.users.enums import UserRole
 from database import get_session
+from app.utils.email import send_email
+from app.utils.common import generate_client_url
+from app.users.enums import UserRole
 from app.users.models import User
+from app.users.services import UserService
 from .models import TokenBlacklist
 from .schemas import TokenData
 from .security import oauth2_scheme
@@ -140,3 +143,22 @@ class AuthService:
                 detail="Forbidden: Only admins can perform this action"
             )
         return user
+    
+    @staticmethod
+    def send_reset_password_email(session: Session, email: str) -> None:
+        token = UserService.create_password_reset_token(session, email)
+        if token:
+            subject = "Password Reset Request"
+            link = generate_client_url(f"/reset-password?token={token}")
+            email_content = f"""
+            <p>Hello,</p>
+            <p>You have requested to reset your password. Please click the link below to set a new password:</p>
+            <p><a href="{link}">{link}</a></p>
+            <p>This link will expire in 4 hours.</p>
+            <p>If you did not request this password reset, please ignore this email.</p>
+            """
+            send_email(
+                recipients=email,
+                subject=subject,
+                content=email_content
+            )

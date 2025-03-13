@@ -268,13 +268,3 @@ def auth_headers(auth_token: str) -> dict:
 @pytest.fixture
 def auth_headers_admin(auth_token_admin: str) -> dict:
     return {"Authorization": f"Bearer {auth_token_admin}"}
-
-
-@pytest.fixture(autouse=True)
-def mock_email_service(monkeypatch):
-    """Mock the email service to prevent actual email sending during tests."""
-    async def mock_send_email(*args, **kwargs):
-        return {"id": "mock_email_id"}
-
-    from app.email_sender.services import EmailSender
-    monkeypatch.setattr(EmailSender, "send_email", mock_send_email)
