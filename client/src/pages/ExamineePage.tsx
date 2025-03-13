@@ -59,7 +59,12 @@ export default function ExamineeDetailPage() {
         if (examinee) {
             try {
                 const responses = await getAssessmentResponses(examinee.id);
-                setAssessmentResponses(responses);
+                const sortedResponses = [...responses].sort(
+                    (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime(),
+                );
+                setAssessmentResponses(sortedResponses);
             } catch (err) {
                 console.error('Error loading assessment responses:', err);
             }

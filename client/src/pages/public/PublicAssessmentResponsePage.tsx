@@ -62,26 +62,20 @@ export default function AssessmentResponsePage() {
         try {
             if (!assessment || !response) return;
 
-            const questionResponses = assessment?.questions
-                ?.map((question) => {
-                    const selectedValue =
-                        document.querySelector<HTMLInputElement>(
-                            `input[name="question-${question.id}"]:checked`,
-                        )?.value;
-
-                    if (!selectedValue)
-                        throw new Error(
-                            'Invalid response to question: ' + question.text,
-                        );
-                    return {
-                        assessmentResponseId: response.id,
-                        questionId: question.id!,
-                        numericValue: selectedValue
-                            ? parseInt(selectedValue)
-                            : 0,
-                    };
-                })
-                .filter((qr) => !!qr.numericValue);
+            const questionResponses = assessment?.questions?.map((question) => {
+                const selectedValue = document.querySelector<HTMLInputElement>(
+                    `input[name="question-${question.id}"]:checked`,
+                )?.value;
+                if (selectedValue === undefined)
+                    throw new Error(
+                        'Invalid response to question: ' + question.text,
+                    );
+                return {
+                    assessmentResponseId: response.id,
+                    questionId: question.id!,
+                    numericValue: parseInt(selectedValue),
+                };
+            });
             const updatedResponse = {
                 ...response,
                 status: ResponseStatus.COMPLETED,
@@ -138,81 +132,57 @@ export default function AssessmentResponsePage() {
     }
 
     return (
-        <Page title={`Response for: ${assessment.title}`}>
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex-1">
-                    <div className="card p-6">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {assessment.title}
-                        </h3>
-                        <p className="text-gray-500 line-clamp-2 mb-4">
-                            <Markdown>{assessment.description}</Markdown>
-                        </p>
+        <Page title={assessment.title} image="https://hazelton.ie/wp-content/uploads/2024/07/15-year-anniversary-logo-2024-copy.jpeg">
+            <div className="justify-between items-center">
+                <div className="rounded-md p-2 bg-gray-200 p-6 text-gray-700">
+                        <Markdown>{assessment.description}</Markdown>
 
-                        <div className="flex items-start gap-2 text-sm">
-                            <InfoBadge color="gray">
-                                Time required:{' '}
-                                {Math.ceil(
-                                    (assessment.questions?.length || 0) / 2,
-                                )}{' '}
-                                min
-                            </InfoBadge>
-                            <InfoBadge color="gray">
-                                {assessment.questions?.length || 0} questions
-                            </InfoBadge>
-                        </div>
+                    <div className="flex items-start gap-2 text-sm mt-4">
+                        <InfoBadge color="gray">
+                            Time required:{' '}
+                            {Math.ceil((assessment.questions?.length || 0) / 2)}{' '}
+                            min
+                        </InfoBadge>
+                        <InfoBadge color="gray">
+                            {assessment.questions?.length || 0} questions
+                        </InfoBadge>
                     </div>
-                </div>
-                <div className="ml-4">
-                    {response.status === ResponseStatus.PENDING && (
-                        <FormButton
-                            variant="primary"
-                            onClick={sendAssessmentResponse}
-                        >
-                            Submit Responses
-                        </FormButton>
-                    )}
                 </div>
             </div>
 
-            <div className="mt-8">
-                <div className="">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            {response.score !== null && (
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Score: {response.score}
-                                </p>
-                            )}
+            <div className="mt-8 space-y-8 p-6">
+                {questionList?.map((question) => {
+                    if (!question.choices || question.choices.length === 0)
+                        return null;
+
+                    const choices = [...question.choices].sort(
+                        (a, b) => (a.order ?? 0) - (b.order ?? 0),
+                    );
+
+                    return (
+                        <div key={question.id} className="">
+                            <h4 className="text-base font-semibold text-gray-900">
+                                {question.text}
+                            </h4>
+                            <ChoiceList
+                                choices={choices}
+                                name={'question-' + question.id}
+                            />
                         </div>
-                    </div>
+                    );
+                })}
+            </div>
 
-                    <div className="mt-8 space-y-8">
-                        {questionList?.map((question) => {
-                            if (
-                                !question.choices ||
-                                question.choices.length === 0
-                            )
-                                return null;
-
-                            const choices = [...question.choices].sort(
-                                (a, b) => (a.order ?? 0) - (b.order ?? 0),
-                            );
-
-                            return (
-                                <div key={question.id} className="">
-                                    <h4 className="text-base font-semibold text-gray-900">
-                                        {question.text}
-                                    </h4>
-                                    <ChoiceList
-                                        choices={choices}
-                                        name={'question-' + question.id}
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+            <div className="mt-8 text-center">
+                {response.status === ResponseStatus.PENDING && (
+                    <FormButton
+                        variant="primary"
+                        onClick={sendAssessmentResponse}
+                        className='w-1/2'
+                    >
+                        Submit Responses
+                    </FormButton>
+                )}
             </div>
         </Page>
     );

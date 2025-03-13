@@ -114,8 +114,7 @@ export default function AssessmentResponsePage() {
 
     return (
         <Page
-            title={`Response for: ${assessment.title}`}
-            description={`Examinee: ${examinee?.firstName} ${examinee?.lastName}`}
+            title={`Examinee: ${examinee?.firstName} ${examinee?.lastName}`}
         >
             <div className="flex justify-between items-center">
                 <div className="flex-1">

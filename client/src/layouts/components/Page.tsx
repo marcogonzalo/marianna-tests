@@ -7,15 +7,16 @@ interface props {
     children: ReactNode;
     title?: string;
     description?: string;
+    image?: string;
 }
 
-export function Page({ title, description, children }: props) {
+export function Page({ title, description, image, children }: props) {
     return (
         <>
             <Helmet>
                 <title>{title}</title>
             </Helmet>
-            {title && <Header title={title} description={description} />}
+            {title && <Header image={image} title={title} description={description} />}
             <Main>{children}</Main>
         </>
     );

@@ -38,8 +38,8 @@ export function NavBar() {
                         <div className="shrink-0">
                             <img
                                 alt="Your Company"
-                                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=500"
-                                className="size-8"
+                                src="https://hazelton.ie/wp-content/uploads/2024/07/15-year-anniversary-logo-2024-copy.jpeg"
+                                style={{ width: '100px', height: 'auto' }}
                             />
                         </div>
                         <div className="hidden md:block">
