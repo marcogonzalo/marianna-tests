@@ -182,7 +182,6 @@ export default function AssessmentResponsePage() {
                                 const choices = [...question.choices].sort(
                                     (a, b) => (a.order ?? 0) - (b.order ?? 0),
                                 );
-                                console.log(choices, response);
                                 return (
                                     <div
                                         key={question.id}

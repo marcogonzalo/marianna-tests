@@ -3,28 +3,29 @@ import Question from './Question';
 import QuestionForm from './QuestionForm';
 import { Question as QuestionType } from '@/features/assessments/types';
 import { FormButton } from '@/components/ui';
-import {
-    createQuestion,
-    getAssessment,
-    updateQuestion,
-    deleteQuestion,
-} from '@/features/assessments/api'; // Import the API handler
 
 interface QuestionFormListProps {
     assessmentId: number;
     questions: QuestionType[];
     isEditing: boolean;
+    onQuestionsChange: (questions: QuestionType[]) => void;
 }
 
 const QuestionFormList: React.FC<QuestionFormListProps> = ({
     assessmentId,
     questions,
     isEditing,
+    onQuestionsChange,
 }) => {
-    const [localQuestions, setLocalQuestions] =
-        useState<QuestionType[]>(questions);
-    const [sortedQuestions, setSortedQuestions] =
-        useState<QuestionType[]>(questions);
+    const [localQuestions, setLocalQuestions] = useState<QuestionType[]>(questions);
+    const [sortedQuestions, setSortedQuestions] = useState<QuestionType[]>(questions);
+
+    useEffect(() => {
+        setLocalQuestions(questions);
+        setSortedQuestions(
+            [...questions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+        );
+    }, [questions]);
 
     useEffect(() => {
         setSortedQuestions(
@@ -32,32 +33,10 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
         );
     }, [localQuestions]);
 
-    const handleSaveQuestion = async (question: QuestionType) => {
-        try {
-            if (question.id && question.id <= 0) question.id = undefined;
-            // Add your API call here to save the question
-            if (question.id) {
-                await updateQuestion(question);
-            } else {
-                await createQuestion(question);
-            }
-            // Optionally refresh the assessment data after saving
-            const updatedAssessment = await getAssessment(assessmentId);
-            setLocalQuestions(updatedAssessment.questions ?? []);
-        } catch (error) {
-            console.error('Error saving question:', error);
-        }
-    };
-
-    const handleDeleteQuestion = async (questionId: number) => {
-        try {
-            if (questionId > 0) await deleteQuestion(assessmentId, questionId);
-            setLocalQuestions(
-                localQuestions.filter((q) => q.id !== questionId),
-            );
-        } catch (error) {
-            console.error('Error deleting question:', error);
-        }
+    const handleDeleteQuestion = (questionId: number) => {
+        const updatedQuestions = localQuestions.filter((q) => q.id !== questionId);
+        setLocalQuestions(updatedQuestions);
+        onQuestionsChange(updatedQuestions);
     };
 
     const handleAddQuestion = () => {
@@ -71,37 +50,61 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
                 ) + 1,
             choices: [],
         };
-        setLocalQuestions([...localQuestions, newQuestion]);
+        const updatedQuestions = [...localQuestions, newQuestion];
+        setLocalQuestions(updatedQuestions);
+        onQuestionsChange(updatedQuestions);
     };
 
     const handleQuestionChange = (updatedQuestion: QuestionType) => {
-        setLocalQuestions((prevQuestions) =>
-            prevQuestions.map((question) =>
+        // Find the original question to compare order changes
+        const originalQuestion = localQuestions.find(q => q.id === updatedQuestion.id);
+        // If the order changed, update all questions' orders
+        if (originalQuestion && originalQuestion.order !== updatedQuestion.order) {
+            const newOrder = updatedQuestion.order!;
+            const oldOrder = originalQuestion.order!;
+
+            // Create a new array with all questions except the one being moved
+            const questionsWithoutMoved = localQuestions.filter(q => q.id !== updatedQuestion.id);
+
+            // Insert the updated question at the new position
+            questionsWithoutMoved.splice(newOrder - 1, 0, updatedQuestion);
+
+            // Update the order values to match their new positions
+            const finalQuestions = questionsWithoutMoved.map((question, index) => ({
+                ...question,
+                order: index + 1,
+            }));
+            setLocalQuestions(finalQuestions);
+            onQuestionsChange(finalQuestions);
+        } else {
+            // If only other fields changed, just update the specific question
+            const updatedQuestions = localQuestions.map((question) =>
                 question.id === updatedQuestion.id ? updatedQuestion : question,
-            ),
-        );
+            );
+            setLocalQuestions(updatedQuestions);
+            onQuestionsChange(updatedQuestions);
+        }
     };
 
     return (
         <div className="flex flex-col gap-y-5">
-            {isEditing && (
-                <FormButton onClick={handleAddQuestion}>
-                    Add Question
-                </FormButton>
-            )}
-            {sortedQuestions.map((question, index) =>
+            {sortedQuestions.map((question) =>
                 isEditing ? (
                     <QuestionForm
                         key={`question-${question.id}`}
                         {...question}
-                        order={index + 1}
-                        onSave={handleSaveQuestion}
+                        choices={question.choices || []}
                         onDelete={handleDeleteQuestion}
                         onChange={handleQuestionChange}
                     />
                 ) : (
                     <Question key={`question-${question.id}`} {...question} />
                 ),
+            )}
+            {isEditing && (
+                <FormButton onClick={handleAddQuestion}>
+                    Add Question
+                </FormButton>
             )}
         </div>
     );

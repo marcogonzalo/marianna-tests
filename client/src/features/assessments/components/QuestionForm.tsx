@@ -1,18 +1,16 @@
 import { FormButton, FormInput } from '@/components/ui';
 import { Question, Choice } from '../types/client';
 import { useState, useRef, useEffect } from 'react';
-import ChoiceFormList, { ChoiceFormListRef } from './ChoiceFormList'; // Import ChoiceFormList
-import { DocumentCheckIcon, TrashIcon } from '@heroicons/react/20/solid';
+import ChoiceFormList, { ChoiceFormListRef } from './ChoiceFormList';
+import { TrashIcon } from '@heroicons/react/20/solid';
 
 interface QuestionFormProps extends Question {
-    onSave?: (question: Question) => void;
-    onDelete?: (questionId: number) => void; // Add this line
+    onDelete?: (questionId: number) => void;
     onChange: (updatedQuestion: Question) => void;
 }
 
 export default function QuestionForm({
-    onSave,
-    onDelete, // Add this line
+    onDelete,
     onChange,
     ...question
 }: QuestionFormProps) {
@@ -20,10 +18,6 @@ export default function QuestionForm({
     const [order, setOrder] = useState(question.order || 0);
     const [choices, setChoices] = useState<Choice[]>(question.choices || []);
     const choiceListRef = useRef<ChoiceFormListRef>(null);
-    const isChanged =
-        text !== question.text ||
-        order !== question.order ||
-        JSON.stringify(choices) !== JSON.stringify(question.choices);
 
     useEffect(() => {
         setText(question.text);
@@ -31,38 +25,16 @@ export default function QuestionForm({
         setChoices(question.choices || []);
     }, [question.text, question.order, question.choices]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!text.trim()) {
-            alert('Question text is required');
-            return;
-        }
-
-        if (!choiceListRef.current?.validateChoices()) {
-            return;
-        }
-
-        const currentChoices = choiceListRef.current?.getChoices() || [];
-        currentChoices.forEach((choice: Choice) => {
-            if (choice.id && choice.id <= 0) choice.id = undefined;
-        });
+    const handleChange = (field: keyof Question, newValue: string | number) => {
         const updatedQuestion = {
             ...question,
-            text,
-            order,
-            choices: currentChoices,
+            [field]: field === 'text' ? newValue : Number(newValue),
+            choices: choices,
         };
-
-        try {
-            if (onSave) {
-                await onSave(updatedQuestion);
-            }
-        } catch (error) {
-            console.error('Error saving question:', error);
-        }
+        onChange(updatedQuestion);
     };
 
-    const handleSaveChoice = (updatedChoice: Choice) => {
+    const handleChoiceChange = (updatedChoice: Choice) => {
         const newChoices = choices.map((choice) =>
             choice.id === updatedChoice.id ? updatedChoice : choice,
         );
@@ -70,18 +42,23 @@ export default function QuestionForm({
             newChoices.push(updatedChoice);
         }
         setChoices(newChoices);
+        onChange({
+            ...question,
+            choices: newChoices,
+        });
     };
 
-    const handleChange = (field: keyof Question, newValue: string | number) => {
-        const updatedQuestion = {
+    const handleChoiceDelete = (choiceId: number | undefined) => {
+        const newChoices = choices.filter((choice) => choice.id !== choiceId);
+        setChoices(newChoices);
+        onChange({
             ...question,
-            [field]: field === 'text' ? newValue : Number(newValue),
-        };
-        onChange(updatedQuestion);
+            choices: newChoices,
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
             <div className="grid grid-cols-8 gap-4">
                 <FormInput
                     label="Question Text"
@@ -104,14 +81,6 @@ export default function QuestionForm({
                     }}
                 />
                 <div className="flex items-end">
-                    <FormButton
-                        type="submit"
-                        variant="secondary"
-                        className="self-end"
-                        disabled={!isChanged}
-                    >
-                        <DocumentCheckIcon className="h-5 w-5" />
-                    </FormButton>
                     {question.id && onDelete && (
                         <FormButton
                             type="button"
@@ -127,8 +96,9 @@ export default function QuestionForm({
             <ChoiceFormList
                 ref={choiceListRef}
                 choices={choices}
-                onSaveChoice={handleSaveChoice}
+                onChange={handleChoiceChange}
+                onDelete={handleChoiceDelete}
             />
-        </form>
+        </div>
     );
 }

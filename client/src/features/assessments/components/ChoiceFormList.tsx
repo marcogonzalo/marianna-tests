@@ -5,7 +5,8 @@ import ChoiceForm from './ChoiceForm';
 
 interface ChoiceFormListProps {
     choices: Choice[];
-    onSaveChoice: (choice: Choice) => void;
+    onChange: (choice: Choice) => void;
+    onDelete: (choiceId: number | undefined) => void;
 }
 
 export interface ChoiceFormListRef {
@@ -14,7 +15,7 @@ export interface ChoiceFormListRef {
 }
 
 const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
-    ({ choices }, ref) => {
+    ({ choices, onChange, onDelete }, ref) => {
         const [localChoices, setLocalChoices] = useState<Choice[]>(choices);
         const [sortedChoices, setSortedChoices] = useState<Choice[]>(choices);
 
@@ -37,12 +38,14 @@ const ChoiceFormList = forwardRef<ChoiceFormListRef, ChoiceFormListProps>(
                     choice.id === updatedChoice.id ? updatedChoice : choice,
                 ),
             );
+            onChange(updatedChoice);
         };
 
         const handleDeleteChoice = (choiceId: number | undefined) => {
             setLocalChoices((prevChoices) =>
                 prevChoices.filter((choice) => choice.id !== choiceId),
             );
+            onDelete(choiceId);
         };
 
         useImperativeHandle(ref, () => ({
