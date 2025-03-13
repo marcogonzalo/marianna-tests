@@ -12,6 +12,12 @@ class User(SQLModel, table=True):
     id: UUID4 = Field(default_factory=uuid4, primary_key=True)
     email: EmailStr = Field(unique=True, index=True, nullable=False)
     password_hash: str = Field(nullable=False)
+    reset_password_token: Optional[str] = Field(default=None, nullable=True)
+    reset_password_expires: Optional[datetime] = Field(
+        default=None,
+        nullable=True,
+        sa_type=DateTime(timezone=True)
+    )
     created_at: datetime = Field(
         default_factory=get_current_datetime,
         sa_type=DateTime(timezone=True)

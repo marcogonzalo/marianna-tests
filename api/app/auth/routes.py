@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlmodel import Session
+from app.users.schemas import PasswordResetConfirm, PasswordResetRequest
 from app.users.services import UserService
 from database import get_session
 from .schemas import LoginResponse, TokenResponse, RefreshRequest
@@ -104,3 +105,26 @@ async def refresh_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token"
         )
+
+@auth_router.post("/reset-password/request")
+async def request_password_reset(
+    request_data: PasswordResetRequest,
+    session: Session = Depends(get_session)
+):
+    
+    user = UserService.get_user_by_email(session, request_data.email)
+    if user:
+        AuthService.send_reset_password_email(session, user.email)
+    
+    # Always return success to prevent email enumeration
+    return {"message": "If the email exists, a password reset link has been sent"}
+
+
+@auth_router.post("/reset-password/confirm")
+async def confirm_password_reset(
+    reset_data: PasswordResetConfirm,
+    session: Session = Depends(get_session)
+):
+    if UserService.reset_password(session, reset_data.token, reset_data.password):
+        return {"message": "Password has been reset successfully"}
+    return {"message": "Invalid or expired token"}

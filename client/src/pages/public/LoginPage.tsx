@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FormButton, FormInput } from '@/components/ui';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -14,6 +15,7 @@ export default function LoginPage() {
 
     // Get the redirect path from either the URL search params or the location state
     const from = searchParams.get('redirect') || location.state?.from?.pathname || '/examinees';
+    const successMessage = location.state?.message;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +40,9 @@ export default function LoginPage() {
                     {error && (
                         <div className="text-red-500 text-center">{error}</div>
                     )}
+                    {successMessage && (
+                        <div className="text-green-500 text-center">{successMessage}</div>
+                    )}
                     <FormInput
                         id="username"
                         name="email"
@@ -57,9 +62,20 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <FormButton type="submit" className="w-full">
-                        Sign in
-                    </FormButton>
+                    <div className="flex items-center justify-between">
+                        <FormButton type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Sign in
+                        </FormButton>
+                    </div>
+
+                    <div className="text-sm text-center">
+                        <Link
+                            to="/forgot-password"
+                            className="font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                            Forgot your password?
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>

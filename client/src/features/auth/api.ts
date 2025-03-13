@@ -34,3 +34,17 @@ export async function getCurrentUser(): Promise<User> {
     const response = await fetchApi<UserAPI>('/users/me');
     return transformKeys(response, toCamelCase) as User;
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+    await fetchApi('/auth/reset-password/request', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+    });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+    await fetchApi('/auth/reset-password/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ token, password: newPassword }),
+    });
+}

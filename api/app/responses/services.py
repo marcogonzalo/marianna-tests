@@ -5,9 +5,9 @@ from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
 
+from app.utils.email import send_email
+from app.utils.common import generate_client_url
 from app.users.schemas import ExamineeRead, UserRead
-from app.email_sender.services import EmailSender
-from app.users.models import Examinee, User
 from .models import AssessmentResponse, QuestionResponse, ResponseStatus
 from .schemas import AssessmentResponseCreate, AssessmentResponseRead, AssessmentResponseUpdate, BulkQuestionResponseCreate
 from app.assessments.models import Assessment, Question
@@ -207,42 +207,34 @@ class AssessmentResponseService:
         return new_status not in allowed_transitions.get(current_status, [])
 
     @staticmethod
-    async def send_link_by_email(response: AssessmentResponseRead, examinee: ExamineeRead, current_user: UserRead) -> dict:
+    def send_link_by_email(response: AssessmentResponseRead, examinee: ExamineeRead, current_user: UserRead) -> dict:
         subject = f"Dr Jayaro needs you to complete the following questionnaire"
-        link = f"{os.getenv('CLIENT_URL')}/public/726573706f6e7365/{response.id}/70726976617465"
+        link = generate_client_url(f"/public/726573706f6e7365/{response.id}/70726976617465")
         content = f"""
             <p>Dear {examinee.first_name},</p>
             <p>Dr Jayaro needs you to complete the following questionnaire in relation to your ASD assessment.</p>
             <p><a href="{link}">{link}</a></p>
             <p>The link would be active for 24 hours.</p>
             <p>If you have any doubts please do not hesitate to ask the clinic.</p>
-            <hr/>
-            <p>Kind regards,</p>
-            <p>The Hazelton Clinic Team</p>
         """
-        return await EmailSender.send_email(
-            sender=current_user.email,
-            receivers=examinee.email,
+        return send_email(
+            recipients=examinee.email,
             subject=subject,
             content=content
         )
 
 
     @staticmethod
-    async def notify_examinee_completed_assessment(response: AssessmentResponseRead, examinee: ExamineeRead, user: UserRead) -> AssessmentResponse:
-        subject = f"Dr Jayaro needs you to complete the following questionnaire"
-        link = f"{os.getenv('CLIENT_URL')}/responses/{response.id}"
+    def notify_examinee_completed_assessment(response: AssessmentResponseRead, examinee: ExamineeRead, user: UserRead) -> AssessmentResponse:
+        subject = f"{examinee.first_name} has completed the questionnaire"
+        link = generate_client_url(f"/responses/{response.id}")
         content = f"""
             <p>Hello,</p>
             <p>The questionnaire has been completed by {examinee.first_name} {examinee.last_name}.</p>
             <p>Now, you can go to the app to see the results here: <a href="{link}">{link}</a></p>
-            <hr/>
-            <p>Regards,</p>
-            <p>The Hazelton Clinic Team</p>
         """
-        return await EmailSender.send_email(
-            sender=user.email,
-            receivers=examinee.email,
+        return send_email(
+            recipients=examinee.email,
             subject=subject,
             content=content
         )
