@@ -23,9 +23,9 @@ def test_user_creation(session: Session):
     # assert user.created_at.tzinfo == timezone.utc
 
 
-def test_account_creation(session: Session, sample_user: User):
+def test_account_creation(session: Session, sample_user_only: User):
     account = Account(
-        user_id=sample_user.id,
+        user_id=sample_user_only.id,
         first_name="John",
         last_name="Doe",
         role=UserRole.ASSESSMENT_DEVELOPER.value
@@ -42,7 +42,7 @@ def test_account_creation(session: Session, sample_user: User):
 #     assert account.user_id == sample_user.id
 
 
-def test_examinee_creation(session: Session, sample_account: Account):
+def test_examinee_creation(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="John",
         last_name="Doe",
@@ -51,7 +51,7 @@ def test_examinee_creation(session: Session, sample_account: Account):
         email="john.doe@example.com",
         internal_identifier="ID123",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     examinee = Examinee(**examinee_data.model_dump())
     session.add(examinee)
@@ -63,7 +63,7 @@ def test_examinee_creation(session: Session, sample_account: Account):
     assert examinee.last_name == "Doe"
 
 
-def test_examinee_update(session: Session, sample_account: Account):
+def test_examinee_update(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Jane",
         last_name="Doe",
@@ -72,7 +72,7 @@ def test_examinee_update(session: Session, sample_account: Account):
         email="jane.doe@example.com",
         internal_identifier="ID124",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     examinee = Examinee(**examinee_data.model_dump())
     session.add(examinee)
@@ -87,7 +87,7 @@ def test_examinee_update(session: Session, sample_account: Account):
         email="jane.doe@example.com",
         internal_identifier="ID124",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     for key, value in update_data.model_dump(exclude_unset=True).items():
         setattr(examinee, key, value)
@@ -97,7 +97,7 @@ def test_examinee_update(session: Session, sample_account: Account):
     assert examinee.first_name == "Janet"
 
 
-def test_examinee_deletion(session: Session, sample_account: Account):
+def test_examinee_deletion(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Mark",
         last_name="Smith",
@@ -106,7 +106,7 @@ def test_examinee_deletion(session: Session, sample_account: Account):
         email="mark.smith@example.com",
         internal_identifier="ID125",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     examinee = Examinee(**examinee_data.model_dump())
     session.add(examinee)

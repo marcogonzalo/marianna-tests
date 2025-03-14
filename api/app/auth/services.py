@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import os
-from typing import Optional
-from fastapi import Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import Depends, HTTPException, logger, status
 from jose import JWTError, jwt
 from sqlmodel import Session, select
 from database import get_session
@@ -123,12 +123,11 @@ class AuthService:
     ):
         user = await current_user
         if user.deleted_at is not None:
-            raise HTTPException(status_code=400, detail="Inactive user")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
         return user
-
-
+    
     @staticmethod
-    async def get_current_admin_user(
+    async def get_current_assessment_developer_user(
         current_user=Depends(get_current_active_user)
     ):
         user = await current_user
@@ -137,10 +136,10 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Forbidden: User has no associated account"
             )
-        if user.account.role != UserRole.ADMIN:
+        if user.account.role != UserRole.ASSESSMENT_DEVELOPER:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Forbidden: Only admins can perform this action"
+                detail="Forbidden: Only assessment developers can perform this action"
             )
         return user
     
@@ -162,3 +161,22 @@ class AuthService:
                 subject=subject,
                 content=email_content
             )
+
+
+class RoleChecker:
+    def __init__(self, allowed_roles: List):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, user: User = Depends(AuthService.get_current_active_user)):
+        if not user.account:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: User has no associated account"
+            )
+        if user.account.role not in self.allowed_roles:
+            logger.logger.debug(f"User with role {user.account.role} not in {self.allowed_roles}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to perform this action."
+            )
+        

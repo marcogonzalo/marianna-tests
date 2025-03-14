@@ -21,3 +21,4 @@ oauth2_scheme_optional = OAuth2PasswordBearerOptional(
     tokenUrl="/auth/token",
     auto_error=False
 )
+

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from .models import User, Account, Examinee
 from .schemas import UserAccountCreate, UserCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate, ExamineeCreate, ExamineeRead, ExamineeUpdate
 from app.utils.password import get_password_hash, validate_password
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 
 class UserService:
@@ -141,7 +141,7 @@ class UserService:
         # First validate the password
         is_valid, error_message = validate_password(new_password)
         if not is_valid:
-            raise HTTPException(status_code=400, detail=error_message)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
 
         user = session.query(User).filter(
             User.reset_password_token == token,
@@ -150,7 +150,7 @@ class UserService:
 
         if not user:
             raise HTTPException(
-                status_code=400, detail="Invalid or expired token")
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
 
         user.password_hash = get_password_hash(new_password)
         user.reset_password_token = None
