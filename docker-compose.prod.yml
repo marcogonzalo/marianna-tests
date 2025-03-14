@@ -1,47 +1,63 @@
 services:
   api:
-    image: marianna-tests-api
+    image: marianna-tests-api:prod
     build:
       context: ./api
-      target: api-dev
+      target: api-prod
+      args:
+        - BUILD_ENV=production
     ports:
-      - 8000:8000
-    volumes:
-      - ./api:/api
-      - /api/.venv/ # This excludes the virtual environment directory
+      - "8000:8000"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/assessments
     env_file:
-      - ./api/.env.development
+      - ./api/.env
     depends_on:
       db:
         condition: service_healthy
-    # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - app-network
 
   client:
+    image: marianna-tests-client:prod
     build:
       context: ./client
-      target: client-dev
+      target: client-prod
+      args:
+        - NODE_ENV=production
     ports:
       - "5173:5173"
-    volumes:
-      - ./client:/usr/local/app
-      - /usr/local/app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for better file watching in Docker
-    command: npm run dev
+      - VITE_API_URL=http://api:8000
+    env_file:
+      - ./client/.env
     depends_on:
       - api
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - app-network
 
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     ports:
       - "5432:5432"
     environment:
@@ -49,14 +65,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-assessments}
     env_file:
-      - ./api/.env.development
+      - ./api/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "assessments"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
     networks:
       - app-network
 
@@ -66,3 +86,4 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local 
