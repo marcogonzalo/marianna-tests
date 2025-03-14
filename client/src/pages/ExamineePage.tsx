@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getExaminee } from '@/features/examinees/api'; // Assume this function fetches an examinee by ID
 import { Examinee } from '@/features/examinees/types'; // Assume this type is defined in a types file
 import { Page } from '../layouts/components/Page';
@@ -17,7 +17,8 @@ import {
 import { getAccount } from '@/features/users/api';
 import { Account } from '@/features/users/types';
 import EditExamineeModal from '@/features/examinees/components/EditExamineeModal';
-import { PencilIcon } from '@heroicons/react/24/outline';
+import DeleteExamineeModal from '@/features/examinees/components/DeleteExamineeModal';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export default function ExamineeDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -27,9 +28,11 @@ export default function ExamineeDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [assessmentResponses, setAssessmentResponses] = useState<
         AssessmentResponse[]
     >([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExaminee = async () => {
@@ -83,6 +86,10 @@ export default function ExamineeDetailPage() {
             ]);
         }
         setIsAssignModalOpen(false);
+    };
+
+    const handleExamineeDeleted = () => {
+        navigate('/examinees');
     };
 
     if (loading) {
@@ -139,12 +146,20 @@ export default function ExamineeDetailPage() {
                             <h2 className="text-2xl font-semibold">
                                 Examinee Details
                             </h2>
-                            <button
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
-                            >
-                                <PencilIcon className="h-5 w-5" />
-                            </button>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+                                >
+                                    <PencilIcon className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(true)}
+                                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-full"
+                                >
+                                    <TrashIcon className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2">
                             <div className="">
@@ -208,6 +223,13 @@ export default function ExamineeDetailPage() {
                     setExaminee(updatedExaminee);
                     setIsEditModalOpen(false);
                 }}
+            />
+            <DeleteExamineeModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                examinee={examinee}
+                hasAssessmentResponses={assessmentResponses.length > 0}
+                onExamineeDeleted={handleExamineeDeleted}
             />
         </Page>
     );

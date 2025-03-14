@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from httpx import request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 from typing import List
@@ -7,9 +6,8 @@ from app.users.enums import UserRole, all_user_roles
 from database import get_session
 from app.auth.services import AuthService, RoleChecker
 from .schemas import UserAccountCreate, UserRead, UserUpdate, AccountCreate, AccountRead, AccountUpdate
-from .services import UserService, AccountService
 from .schemas import ExamineeCreate, ExamineeRead, ExamineeUpdate
-from .services import ExamineeService
+from .services import UserService, AccountService, ExamineeService
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
@@ -130,8 +128,14 @@ def update_examinee(id: UUID4, examinee: ExamineeUpdate, session: Session = Depe
 
 
 @examinees_router.delete("/{id}", response_model=dict, dependencies=[Depends(RoleChecker(all_user_roles))])
-def soft_delete_examinee(id: UUID4, session: Session = Depends(get_session), current_user=Depends(AuthService.get_current_active_user)):
-    if request.query_params.get("hard_delete"):
+def soft_delete_examinee(
+    id: UUID4,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=Depends(AuthService.get_current_active_user)
+):
+    hard_delete = request.query_params.get("hard_delete") == "true"
+    if hard_delete:
         if current_user.account.role != UserRole.ADMIN:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden: Only admins can perform a hard delete")
         success = ExamineeService.hard_delete_examinee(session, id)

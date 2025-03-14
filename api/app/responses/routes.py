@@ -30,7 +30,7 @@ async def get_assessment_responses(
     session: Session = Depends(get_session),
     query_params: dict = Depends(get_query_params)
 ):
-    if 'examinee' in query_params:
+    if 'examinee_id' in query_params:
         assessment_responses = AssessmentResponseService.get_assessment_responses_by_examinee(
             session, query_params["examinee_id"])
     else:
