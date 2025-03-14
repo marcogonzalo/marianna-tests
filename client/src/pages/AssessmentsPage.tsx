@@ -5,12 +5,15 @@ import { Assessment } from '@/features/assessments/types/client';
 import { getAssessments } from '@/features/assessments/api';
 import { FormButton } from '@/components/ui';
 import { Page } from '../layouts/components/Page';
+import { UserRole } from '@/features/users/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AssessmentsPage() {
     const navigate = useNavigate();
     const [assessments, setAssessments] = useState<Assessment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { user: currentUser } = useAuth();
 
     useEffect(() => {
         const loadAssessments = async () => {
@@ -60,12 +63,14 @@ export default function AssessmentsPage() {
                                 organization.
                             </p>
                         </div>
+                        {[UserRole.ADMIN, UserRole.ASSESSMENT_DEVELOPER].includes(currentUser?.account?.role as UserRole) && (
                         <FormButton
                             variant="primary"
-                            onClick={() => navigate('/assessments/create')}
-                        >
-                            Create Assessment
-                        </FormButton>
+                                onClick={() => navigate('/assessments/create')}
+                            >
+                                Create Assessment
+                            </FormButton>
+                        )}
                     </div>
 
                     <AssessmentList assessments={assessments} />

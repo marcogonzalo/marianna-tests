@@ -1,4 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import PrivateLayout from './layouts/PrivateLayout';
+import PublicLayout from './layouts/PublicLayout';
 import AssessmentPage from './pages/AssessmentPage';
 import AssessmentsPage from './pages/AssessmentsPage';
 import CreateAssessmentPage from './pages/CreateAssessmentPage';
@@ -8,52 +11,103 @@ import UsersPage from './pages/UsersPage';
 import ExamineesPage from './pages/ExamineesPage';
 import ExamineePage from './pages/ExamineePage';
 import PublicAssessmentResponsePage from './pages/public/PublicAssessmentResponsePage';
-import PrivateLayout from './layouts/PrivateLayout';
-import PublicLayout from './layouts/PublicLayout';
 import LoginPage from './pages/public/LoginPage';
 import LogoutPage from './pages/public/LogoutPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 import ResetPasswordPage from './pages/public/ResetPasswordPage';
+import { UserRole } from './features/users/types/shared';
 
+const allRoles = Object.keys(UserRole).map(
+    (role) => UserRole[role as keyof typeof UserRole],
+);
 const router = createBrowserRouter([
     {
         element: <PrivateLayout />,
         children: [
             {
                 path: '/',
-                element: <AssessmentsPage />,
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={allRoles}
+                    >
+                        <AssessmentsPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/assessments/:id',
-                element: <AssessmentPage />,
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={allRoles}
+                    >
+                        <AssessmentPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/assessments',
-                element: <AssessmentsPage />,
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={allRoles}
+                    >
+                        <AssessmentsPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/assessments/create',
-                element: <CreateAssessmentPage />,
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={[
+                            UserRole.ADMIN,
+                            
+                        ]}
+                    >
+                        <CreateAssessmentPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/assessments/:id/responses',
-                element: <AssessmentResponsesPage />,
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={allRoles}
+                    >
+                        <AssessmentResponsesPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/responses/:responseId',
-                element: <AssessmentResponsePage />,
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <AssessmentResponsePage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/users',
-                element: <UsersPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <UsersPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/examinees/:id',
-                element: <ExamineePage />,
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <ExamineePage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/examinees',
-                element: <ExamineesPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <ExamineesPage />
+                    </ProtectedRoute>
+                ),
             },
         ],
     },
@@ -70,7 +124,11 @@ const router = createBrowserRouter([
             },
             {
                 path: '/logout',
-                element: <LogoutPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <LogoutPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: '/forgot-password',
