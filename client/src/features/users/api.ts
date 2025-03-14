@@ -2,7 +2,6 @@ import { fetchApi } from '@/lib/api';
 import { User, CreateUserRequest, UpdateUserRequest, Account } from './types/client';
 import { AccountAPI, UserAPI, UserAPIRequest, UserUpdateAPI } from './types/api';
 import { transformKeys, toCamelCase, toSnakeCase } from '@/utils/transformKeys';
-import { UserRole } from './types';
 
 export async function getUsers(): Promise<User[]> {
     const response = await fetchApi<UserAPI[]>('/users');

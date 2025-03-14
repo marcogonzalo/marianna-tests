@@ -28,6 +28,7 @@ function TextEditor({ data, format = 'markdown', onChange }: TextEditorProps) {
             onChange={ (event, editor) => {
                 const data = editor.getData();
                 onChange(data);
+                event;
             } }
         />
     );

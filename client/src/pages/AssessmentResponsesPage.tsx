@@ -27,7 +27,7 @@ export default function AssessmentResponsesPage() {
                 if (!id) throw new Error('Assessment ID is required');
                 const [assessmentData, responsesData] = await Promise.all([
                     getAssessment(parseInt(id)),
-                    getAssessmentResponses(parseInt(id)),
+                    getAssessmentResponses(id),
                 ]);
                 setAssessment(assessmentData);
                 setResponses(responsesData);
@@ -46,7 +46,9 @@ export default function AssessmentResponsesPage() {
     const handleStartNewResponse = async () => {
         try {
             if (!id) return;
-            const response = await createAssessmentResponse(parseInt(id));
+            const response = await createAssessmentResponse(parseInt(id), {
+                examineeId: '1',
+            });
             navigate(`/assessments/${id}/responses/${response.id}`);
         } catch (error) {
             console.error('Error creating response:', error);
