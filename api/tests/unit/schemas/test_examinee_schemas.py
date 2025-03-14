@@ -1,11 +1,11 @@
 import pytest
 from datetime import date
-from app.users.models import Account
+from app.users.models import User
 from app.users.schemas import ExamineeCreate, ExamineeUpdate
 from app.users.enums import Gender
 
 
-def test_examinee_create_schema(sample_account: Account):
+def test_examinee_create_schema(sample_user: User):
     examinee_data = {
         "first_name": "Alice",
         "last_name": "Johnson",
@@ -14,7 +14,7 @@ def test_examinee_create_schema(sample_account: Account):
         "email": "alice.johnson@example.com",
         "internal_identifier": "ID126",
         "comments": "Test examinee",
-        "created_by": sample_account.id
+        "created_by": sample_user.account.id
     }
     examinee = ExamineeCreate(**examinee_data)
     assert examinee.first_name == "Alice"

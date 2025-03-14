@@ -3,7 +3,7 @@ from typing import List
 from pydantic import UUID4
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from app.utils.email import send_email
 from app.utils.common import generate_client_url
@@ -19,7 +19,7 @@ class AssessmentResponseService:
         # Verify the associated assessment exists
         assessment = session.get(Assessment, response_data.assessment_id)
         if not assessment:
-            raise HTTPException(status_code=404, detail="Assessment not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
 
         # # Create the assessment response
         assessment_response = AssessmentResponse(
@@ -40,7 +40,7 @@ class AssessmentResponseService:
         assessment_response = session.get(AssessmentResponse, response_id)
         if not assessment_response:
             raise HTTPException(
-                status_code=404, detail="Assessment response not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Assessment response not found")
 
         # Update the fields
         for key, value in update_data.items():
@@ -64,7 +64,7 @@ class AssessmentResponseService:
         ).first()
         if not assessment_response:
             raise HTTPException(
-                status_code=404, detail="Assessment response not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Assessment response not found")
 
         # Convert SQLModel instances to dictionaries
         response_dict = assessment_response.model_dump()
@@ -90,7 +90,7 @@ class AssessmentResponseService:
         # Verify the associated question exists
         question = session.get(Question, response_data.question_id)
         if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
         # Create the question response
         question_response = QuestionResponse(
@@ -144,11 +144,11 @@ class AssessmentResponseService:
             AssessmentResponse, assessment_response_id)
         if not assessment_response:
             raise HTTPException(
-                status_code=404, detail="Assessment response not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Assessment response not found")
 
         if assessment_response.status != ResponseStatus.PENDING:
             raise HTTPException(
-                status_code=400, detail="Cannot process responses; the assessment is not in a PENDING state.")
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot process responses; the assessment is not in a PENDING state.")
 
         question_responses = []
         total_score = 0
@@ -175,7 +175,7 @@ class AssessmentResponseService:
         assessment_response = session.get(AssessmentResponse, response_id)
         if not assessment_response:
             raise HTTPException(
-                status_code=404, detail="Assessment response not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Assessment response not found")
 
         score_change = assessment_response.status == ResponseStatus.PENDING and status_update == ResponseStatus.COMPLETED and total_score is not None
         if score_change:
@@ -183,7 +183,7 @@ class AssessmentResponseService:
         else:
             if AssessmentResponseService.is_status_change_invalid(assessment_response.status, status_update):
                 raise HTTPException(
-                    status_code=400, detail=f"Cannot change status from {assessment_response.status} to {status_update}")
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=f"Cannot change status from {assessment_response.status} to {status_update}")
 
         assessment_response.status = status_update
         session.add(assessment_response)

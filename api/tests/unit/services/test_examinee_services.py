@@ -1,13 +1,13 @@
 import pytest
 from datetime import date
-from app.users.models import Account
+from app.users.models import User
 from app.users.enums import Gender
 from app.users.schemas import ExamineeCreate, ExamineeUpdate
 from app.users.services import ExamineeService
 from sqlmodel import Session
 
 
-def test_create_examinee(session: Session, sample_account: Account):
+def test_create_examinee(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Tom",
         last_name="Brown",
@@ -16,14 +16,14 @@ def test_create_examinee(session: Session, sample_account: Account):
         email="tom.brown@example.com",
         internal_identifier="ID127",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     examinee = ExamineeService.create_examinee(session, examinee_data)
     assert examinee.first_name == "Tom"
     assert examinee.email == "tom.brown@example.com"
 
 
-def test_get_examinee(session: Session, sample_account: Account):
+def test_get_examinee(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Sara",
         last_name="Connor",
@@ -32,7 +32,7 @@ def test_get_examinee(session: Session, sample_account: Account):
         email="sara.connor@example.com",
         internal_identifier="ID128",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     created_examinee = ExamineeService.create_examinee(session, examinee_data)
     fetched_examinee = ExamineeService.get_examinee(
@@ -40,7 +40,7 @@ def test_get_examinee(session: Session, sample_account: Account):
     assert fetched_examinee.id == created_examinee.id
 
 
-def test_update_examinee(session: Session, sample_account: Account):
+def test_update_examinee(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Mike",
         last_name="Davis",
@@ -49,7 +49,7 @@ def test_update_examinee(session: Session, sample_account: Account):
         email="mike.davis@example.com",
         internal_identifier="ID129",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     created_examinee = ExamineeService.create_examinee(session, examinee_data)
 
@@ -61,14 +61,14 @@ def test_update_examinee(session: Session, sample_account: Account):
         email="mike.davis@example.com",
         internal_identifier="ID129",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     updated_examinee = ExamineeService.update_examinee(
         session, created_examinee.id, update_data)
     assert updated_examinee.first_name == "Michael"
 
 
-def test_soft_delete_examinee(session: Session, sample_account: Account):
+def test_soft_delete_examinee(session: Session, sample_user: User):
     examinee_data = ExamineeCreate(
         first_name="Laura",
         last_name="Wilson",
@@ -77,7 +77,7 @@ def test_soft_delete_examinee(session: Session, sample_account: Account):
         email="laura.wilson@example.com",
         internal_identifier="ID130",
         comments="Test examinee",
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     created_examinee = ExamineeService.create_examinee(session, examinee_data)
     assert ExamineeService.soft_delete_examinee(

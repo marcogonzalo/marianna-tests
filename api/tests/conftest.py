@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from datetime import date, timedelta
 from typing import AsyncGenerator, Generator
 from httpx import AsyncClient, ASGITransport
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
 from pathlib import Path
 from database import get_session
@@ -128,6 +128,19 @@ def sample_choice_fixture(session: Session, sample_question: Question) -> Choice
     session.refresh(choice)
     return choice
 
+@pytest.fixture
+def sample_user_only(session: Session) -> User:
+    user = User(
+        email="useronly@example.com",
+        password_hash=get_password_hash("hashedpassword123")
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
+
+
 
 @pytest.fixture
 def sample_user(session: Session) -> User:
@@ -138,6 +151,26 @@ def sample_user(session: Session) -> User:
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    from app.users.models import Account
+    from app.users.enums import UserRole
+
+    # Check if the user already has an account
+    statement = select(Account).where(Account.user_id == user.id)
+    existing_account = session.exec(statement).first()
+
+    if existing_account:
+        return existing_account
+
+    account = Account(
+        user_id=user.id,
+        first_name="John",
+        last_name="Doe",
+        role=UserRole.ASSESSMENT_DEVELOPER
+    )
+    session.add(account)
+    session.commit()
+    session.refresh(account)
     return user
 
 
@@ -150,34 +183,19 @@ def sample_admin_user(session: Session) -> User:
     session.add(user)
     session.commit()
     session.refresh(user)
-    return user
 
-
-@pytest.fixture
-def sample_account(session: Session, sample_user: User) -> Account:
     from app.users.models import Account
     from app.users.enums import UserRole
 
-    account = Account(
-        user_id=sample_user.id,
-        first_name="John",
-        last_name="Doe",
-        role=UserRole.ASSESSMENT_DEVELOPER
-    )
-    session.add(account)
-    session.commit()
-    session.refresh(account)
-    return account
+    # Check if the admin user already has an account
+    statement = select(Account).where(Account.user_id == user.id)
+    existing_account = session.exec(statement).first()
 
-
-
-@pytest.fixture
-def sample_admin_account(session: Session, sample_admin_user: User) -> Account:
-    from app.users.models import Account
-    from app.users.enums import UserRole
+    if existing_account:
+        return existing_account
 
     account = Account(
-        user_id=sample_admin_user.id,
+        user_id=user.id,
         first_name="Admin",
         last_name="Doe",
         role=UserRole.ADMIN
@@ -185,18 +203,18 @@ def sample_admin_account(session: Session, sample_admin_user: User) -> Account:
     session.add(account)
     session.commit()
     session.refresh(account)
-    return account
+    return user
 
 
 @pytest.fixture
-def sample_examinee(session: Session, sample_account: Account) -> Examinee:
+def sample_examinee(session: Session, sample_user: User) -> Examinee:
     user = Examinee(
         first_name="Marianna",
         last_name="Rolo",
         email="test@example.com",
         birth_date=date(2000, 1, 1),
         gender=Gender.FEMALE,
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     session.add(user)
     session.commit()
@@ -205,7 +223,7 @@ def sample_examinee(session: Session, sample_account: Account) -> Examinee:
 
 
 @pytest.fixture
-def sample_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee, sample_account: Account):
+def sample_assessment_response(session: Session, sample_assessment: Assessment, sample_examinee: Examinee, sample_user: User):
     # Create a sample AssessmentResponse
     assessment_response = AssessmentResponse(
         assessment_id=sample_assessment.id,
@@ -213,7 +231,7 @@ def sample_assessment_response(session: Session, sample_assessment: Assessment, 
         status="pending",
         created_at=get_current_datetime(),
         updated_at=get_current_datetime(),
-        created_by=sample_account.id
+        created_by=sample_user.account.id
     )
     session.add(assessment_response)
     session.commit()
@@ -238,21 +256,8 @@ def sample_question_response(session: Session, sample_assessment_response: Asses
 
 
 @pytest.fixture
-def auth_token(sample_user: User) -> str:
+def auth_token(sample_admin_user: User) -> str:
     from app.auth.services import AuthService
-    access_token = AuthService.create_access_token(
-        data={"sub": sample_user.email},
-        expires_delta=timedelta(minutes=30)
-    )
-    return access_token
-
-@pytest.fixture
-def auth_token_admin(session: Session, sample_admin_user: User, sample_admin_account: Account) -> str:
-    from app.auth.services import AuthService
-    sample_admin_account.user = sample_admin_user
-    session.add(sample_admin_account)
-    session.commit()
-    session.refresh(sample_admin_account)
     access_token = AuthService.create_access_token(
         data={"sub": sample_admin_user.email},
         expires_delta=timedelta(minutes=30)
@@ -261,10 +266,30 @@ def auth_token_admin(session: Session, sample_admin_user: User, sample_admin_acc
 
 
 @pytest.fixture
-def auth_headers(auth_token: str) -> dict:
-    return {"Authorization": f"Bearer {auth_token}"}
+def auth_token_admin(session: Session, sample_admin_user: User) -> str:
+    from app.auth.services import AuthService
+    access_token = AuthService.create_access_token(
+        data={"sub": sample_admin_user.email},
+        expires_delta=timedelta(minutes=30)
+    )
+    return access_token
 
 
 @pytest.fixture
 def auth_headers_admin(auth_token_admin: str) -> dict:
     return {"Authorization": f"Bearer {auth_token_admin}"}
+
+
+@pytest.fixture
+def non_admin_auth_token(sample_user: User) -> str:
+    from app.auth.services import AuthService
+    access_token = AuthService.create_access_token(
+        data={"sub": sample_user.email},
+        expires_delta=timedelta(minutes=30)
+    )
+    return access_token
+
+
+@pytest.fixture
+def non_admin_auth_headers(non_admin_auth_token: str) -> dict:
+    return {"Authorization": f"Bearer {non_admin_auth_token}"}

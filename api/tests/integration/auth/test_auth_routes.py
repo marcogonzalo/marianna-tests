@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import status
 from jose import jwt
 from sqlmodel import Session
 from app.auth.services import SECRET_KEY, ALGORITHM
@@ -16,6 +17,20 @@ def auth_user(session: Session) -> User:
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    # Create an account for the user
+    from app.users.models import Account
+    from app.users.enums import UserRole
+    account = Account(
+        user_id=user.id,
+        first_name="Auth",
+        last_name="Test",
+        role=UserRole.ASSESSMENT_DEVELOPER
+    )
+    session.add(account)
+    session.commit()
+    session.refresh(user)
+    
     return user
 
 
@@ -27,7 +42,7 @@ def test_login_success(client: TestClient, auth_user: User):
             "password": "testpassword123"
         }
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
@@ -47,7 +62,7 @@ def test_login_invalid_credentials(client: TestClient, auth_user: User):
             "password": "wrongpassword"
         }
     )
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["detail"] == "Incorrect email or password"
 
 
@@ -67,7 +82,7 @@ def test_logout(client: TestClient, auth_user: User):
         "/auth/logout",
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json()["message"] == "Successfully logged out"
 
     # Verify token is blacklisted by trying to use it
@@ -75,10 +90,10 @@ def test_logout(client: TestClient, auth_user: User):
         "/users/",
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert protected_response.status_code == 401
+    assert protected_response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_refresh_token(client: TestClient, auth_user: User, auth_headers: dict):
+def test_refresh_token(client: TestClient, auth_user: User, auth_headers_admin: dict):
     # First login to get initial tokens
     login_response = client.post(
         "/auth/token",
@@ -103,7 +118,7 @@ def test_refresh_token(client: TestClient, auth_user: User, auth_headers: dict):
         json={"refresh_token": refresh_token},
         headers={"Authorization": f"Bearer {refresh_token}"}
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "access_token" in data
     assert "refresh_token" in data
@@ -116,11 +131,11 @@ def test_refresh_token(client: TestClient, auth_user: User, auth_headers: dict):
     assert payload["sub"] == "auth_test@example.com"
 
 
-def test_refresh_token_invalid(client: TestClient, auth_headers: dict):
+def test_refresh_token_invalid(client: TestClient, auth_headers_admin: dict):
     response = client.post(
         "/auth/refresh",
         json={"refresh_token": "invalid_token"},
-        headers=auth_headers
+        headers=auth_headers_admin
     )
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["detail"] == "Invalid refresh token"

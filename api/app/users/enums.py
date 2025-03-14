@@ -9,6 +9,7 @@ class UserRole(str, Enum):
     def serialize(self):
         return self.value
 
+all_user_roles = [role.value for role in UserRole]
 
 class Gender(str, Enum):
     FEMALE = "female"

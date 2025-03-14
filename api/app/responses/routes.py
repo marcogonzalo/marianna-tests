@@ -1,8 +1,8 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
 from app.responses.models import ResponseStatus
-from app.auth.services import AuthService
+from app.users.enums import all_user_roles
+from app.auth.services import RoleChecker
 from app.auth.security import oauth2_scheme_optional
 from app.assessments.schemas import AssessmentBase, AssessmentRead
 from .schemas import (
@@ -25,10 +25,10 @@ async def get_query_params(request: Request):
     return request.query_params
 
 
-@responses_router.get("/", response_model=list[AssessmentResponseReadWithAssessment])
+@responses_router.get("/", response_model=list[AssessmentResponseReadWithAssessment], dependencies=[Depends(RoleChecker(all_user_roles))])
 async def get_assessment_responses(
     session: Session = Depends(get_session),
-    query_params: dict = Depends(get_query_params), current_user=Depends(AuthService.get_current_active_user)
+    query_params: dict = Depends(get_query_params)
 ):
     if 'examinee' in query_params:
         assessment_responses = AssessmentResponseService.get_assessment_responses_by_examinee(
@@ -52,12 +52,11 @@ async def get_assessment_responses(
     return validated_responses
 
 
-@responses_router.patch("/{response_id}/change-status", response_model=AssessmentResponseRead)
+@responses_router.patch("/{response_id}/change-status", response_model=AssessmentResponseRead, dependencies=[Depends(RoleChecker(all_user_roles))])
 async def change_status(
     response_id: str,
     status_update: AssessmentResponseUpdate,
-    session: Session = Depends(get_session),
-    current_user=Depends(AuthService.get_current_active_user)
+    session: Session = Depends(get_session)
 ):
     # Pass the ID directly and let the service handle getting the database model
     assessment_response = AssessmentResponseService.update_assessment_response_status_and_score(
@@ -66,6 +65,7 @@ async def change_status(
     return AssessmentResponseRead.model_validate(assessment_response)
 
 
+# Public endpoint - no authentication required. Examinee can create responses
 @responses_router.put("/{response_id}", response_model=AssessmentResponseRead)
 async def create_bulk_responses(
     response_id: str,
@@ -87,7 +87,7 @@ async def create_bulk_responses(
     return AssessmentResponseRead.model_validate(assessment_response)
 
 
-@responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions)
+@responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions, dependencies=[Depends(RoleChecker(all_user_roles))])
 async def get_bulk_responses(
     response_id: str,
     session: Session = Depends(get_session),
