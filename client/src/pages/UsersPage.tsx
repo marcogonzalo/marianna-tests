@@ -112,15 +112,16 @@ export default function UsersPage() {
 
     return (
         <Page title="Users">
-            <div className="flex justify-between items-center mb-6">
+            {currentUser?.account?.role === UserRole.ADMIN && (<div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-semibold">All Users</h3>
                 <FormButton
                     variant="primary"
                     onClick={() => setIsCreateModalOpen(true)}
                 >
                     Create User
-                </FormButton>
-            </div>
+                    </FormButton>
+                </div>
+            )}
 
             <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
                 <table className="min-w-full divide-y divide-gray-300">
