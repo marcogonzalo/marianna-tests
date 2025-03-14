@@ -44,8 +44,9 @@ export async function updateExaminee(
     return transformKeys(response, toCamelCase) as Examinee;
 }
 
-export async function deleteExaminee(id: string): Promise<void> {
-    await fetchApi(`/examinees/${id}`, {
+export async function deleteExaminee(id: string, isHardDelete: boolean = false): Promise<void> {
+    const queryParams = isHardDelete ? '?hard_delete=true' : '';
+    await fetchApi(`/examinees/${id}${queryParams}`, {
         method: 'DELETE',
     });
 }
