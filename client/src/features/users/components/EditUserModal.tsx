@@ -23,7 +23,7 @@ export default function EditUserModal({
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        role: UserRole.ASSESSMENT_TAKER,
+        role: UserRole.ASSESSMENT_REVIEWER,
         email: '',
     });
 
@@ -32,7 +32,7 @@ export default function EditUserModal({
             setFormData({
                 firstName: user.account?.firstName || '',
                 lastName: user.account?.lastName || '',
-                role: (user.account?.role as UserRole) || UserRole.ASSESSMENT_TAKER,
+                role: (user.account?.role as UserRole) || UserRole.ASSESSMENT_REVIEWER,
                 email: user.email,
             });
         }

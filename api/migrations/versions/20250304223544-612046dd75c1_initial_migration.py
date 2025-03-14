@@ -65,7 +65,7 @@ def upgrade() -> None:
                     sa.Column('first_name', sa.String(), nullable=False),
                     sa.Column('last_name', sa.String(), nullable=False),
                     sa.Column('role', sa.Enum('ASSESSMENT_DEVELOPER',
-                                              'ASSESSMENT_TAKER', 'ADMIN', name='userrole'), nullable=False),
+                                              'ASSESSMENT_REVIEWER', 'ADMIN', name='userrole'), nullable=False),
                     sa.Column('user_id', sa.Uuid(), nullable=False),
                     sa.Column('created_at', sa.DateTime(
                         timezone=True), nullable=False),

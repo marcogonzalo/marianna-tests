@@ -3,7 +3,7 @@ from enum import Enum
 
 class UserRole(str, Enum):
     ASSESSMENT_DEVELOPER = "assessment_developer"
-    ASSESSMENT_TAKER = "assessment_taker"
+    ASSESSMENT_REVIEWER = "assessment_reviewer"
     ADMIN = "admin"
 
     def serialize(self):
