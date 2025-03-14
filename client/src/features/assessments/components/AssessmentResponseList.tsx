@@ -6,7 +6,6 @@ import {
 } from '@/features/assessments/types';
 import { FormButton } from '@/components/ui';
 import {
-    EnvelopeIcon,
     EyeIcon,
     LinkIcon,
 } from '@heroicons/react/20/solid';

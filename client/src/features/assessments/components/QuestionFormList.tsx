@@ -61,7 +61,6 @@ const QuestionFormList: React.FC<QuestionFormListProps> = ({
         // If the order changed, update all questions' orders
         if (originalQuestion && originalQuestion.order !== updatedQuestion.order) {
             const newOrder = updatedQuestion.order!;
-            const oldOrder = originalQuestion.order!;
 
             // Create a new array with all questions except the one being moved
             const questionsWithoutMoved = localQuestions.filter(q => q.id !== updatedQuestion.id);

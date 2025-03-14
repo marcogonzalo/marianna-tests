@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children, allowedRoles }: { children: R
 
 
     useEffect(() => {  
-        if (!allowedRoles.includes(currentUser?.account?.role as UserRole)) {
+        if (currentUser && !allowedRoles.includes(currentUser.account?.role as UserRole)) {
             navigate(-1);
         }
         setIsLoading(false);
