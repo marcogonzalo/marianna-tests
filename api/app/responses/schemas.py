@@ -27,7 +27,7 @@ class AssessmentResponseRead(AssessmentResponseCreate):
     updated_at: datetime = Field(default_factory=get_current_datetime)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         from_attributes = True
 
     @field_validator('created_at', 'updated_at')
