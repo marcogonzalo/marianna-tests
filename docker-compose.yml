@@ -12,7 +12,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/assessments
+      - DATABASE_URL=postgresql://postgres:postgres@db-dev:5432/assessments
     env_file:
       - ./api/.env.development
     depends_on:
@@ -33,7 +33,7 @@ services:
       - /usr/local/app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for better file watching in Docker
+      - CHOKIDAR_USEPOLLING=true # Enable polling for better file watching in Docker
     command: npm run dev
     depends_on:
       - api-dev
