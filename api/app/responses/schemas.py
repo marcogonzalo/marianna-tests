@@ -40,7 +40,7 @@ class AssessmentResponseRead(AssessmentResponseCreate):
 
 class AssessmentResponseReadWithAssessment(AssessmentResponseRead):
     id: str
-    score: Optional[float]
+    score: Optional[float] = None
     assessment: Optional[AssessmentBase]
     examinee_id: UUID4 | str
 

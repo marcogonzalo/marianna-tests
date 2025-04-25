@@ -97,8 +97,8 @@ class ExamineeBase(BaseModel):
     birth_date: date  # Use str for date in Pydantic
     gender: Gender
     email: EmailStr
-    internal_identifier: Optional[str]
-    comments: Optional[str]
+    internal_identifier: Optional[str] = None
+    comments: Optional[str] = None
 
     @field_validator('first_name', 'last_name')
     @classmethod

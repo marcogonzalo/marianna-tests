@@ -92,7 +92,7 @@ class QuestionRead(BaseModel):
 
 
 class QuestionUpdate(QuestionCreate):
-    id: Optional[int]
+    id: Optional[int] = None
     choices: List[ChoiceUpdate]
 
 
@@ -167,8 +167,8 @@ class AssessmentCreate(AssessmentBase):
 
 
 class AssessmentUpdate(BaseModel):
-    title: Optional[str]
-    description: Optional[str]
+    title: Optional[str] = None
+    description: Optional[str] = None
 
 
 class AssessmentRead(AssessmentCreate):
