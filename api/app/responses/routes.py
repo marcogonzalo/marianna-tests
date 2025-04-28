@@ -78,12 +78,15 @@ async def create_bulk_responses(
         from app.users.schemas import ExamineeRead, UserRead
         examinee = assessment_response.examinee
         user = assessment_response.creator.user
-        AssessmentResponseService.notify_examinee_completed_assessment(
-            response=AssessmentResponseRead.model_validate(
-                assessment_response),
-            examinee=ExamineeRead.model_validate(examinee.__dict__),
-            user=UserRead.model_validate(user)
-        )
+        try:
+            AssessmentResponseService.notify_examinee_completed_assessment(
+                response=AssessmentResponseRead.model_validate(
+                    assessment_response),
+                examinee=ExamineeRead.model_validate(examinee.__dict__),
+                user=UserRead.model_validate(user)
+            )
+        except Exception:
+            pass
     return AssessmentResponseRead.model_validate(assessment_response)
 
 

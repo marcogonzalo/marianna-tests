@@ -312,12 +312,14 @@ async def create_assessment_response(
     session.add(assessment_response)
     session.commit()
     session.refresh(assessment_response)
-
-    AssessmentResponseService.send_link_by_email(
-        response=AssessmentResponseRead.model_validate(assessment_response),
-        examinee=ExamineeRead.model_validate(
-            assessment_response.examinee.model_dump()),
-        current_user=UserRead.model_validate(current_user)
-    )
+    try:
+        AssessmentResponseService.send_link_by_email(
+            response=AssessmentResponseRead.model_validate(assessment_response),
+            examinee=ExamineeRead.model_validate(
+                assessment_response.examinee.model_dump()),
+            current_user=UserRead.model_validate(current_user)
+        )
+    except Exception:
+        pass
 
     return AssessmentResponseRead.model_validate(assessment_response)
