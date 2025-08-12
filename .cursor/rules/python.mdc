@@ -1,0 +1,6 @@
+---
+description: Python code guidelines
+globs: *.py
+---
+Always apply PEP8 guidelines when programming in Python.
+

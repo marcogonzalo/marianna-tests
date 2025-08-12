@@ -1,0 +1,8 @@
+---
+description: React code guidelines
+globs: *.tsx
+---
+
+# Your rule content
+
+Use functional components when working with React.

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AssessmentResponse,
@@ -9,6 +9,8 @@ import {
     EyeIcon,
     LinkIcon,
 } from '@heroicons/react/20/solid';
+import CopyValueModal from '@/components/ui/modals/copy-value/CopyValueModal';
+
 interface AssessmentResponseListProps {
     responses: AssessmentResponse[];
     onStatusChange: (id: string, newStatus: ResponseStatus) => void; // Update to use ResponseStatus directly
@@ -19,10 +21,17 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
     onStatusChange,
 }) => {
     const navigate = useNavigate();
+    const [copyModalOpen, setCopyModalOpen] = useState(false);
+    const [urlToCopy, setUrlToCopy] = useState('');
 
     const handleCopyUrl = (url: string) => {
-        navigator.clipboard.writeText(url);
-        alert('URL copied to clipboard!');
+        setUrlToCopy(url);
+        setCopyModalOpen(true);
+    };
+
+    const handleCloseCopyModal = () => {
+        setCopyModalOpen(false);
+        setUrlToCopy('');
     };
 
     return (
@@ -131,6 +140,14 @@ const AssessmentResponseList: React.FC<AssessmentResponseListProps> = ({
                     ))}
                 </tbody>
             </table>
+            <CopyValueModal
+                isOpen={copyModalOpen}
+                onClose={handleCloseCopyModal}
+                value={urlToCopy}
+                title="Copy Assessment URL"
+                label="Copy this assessment URL to clipboard:"
+                successMessage="Assessment URL copied to clipboard!"
+            />
         </div>
     );
 };
