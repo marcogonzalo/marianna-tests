@@ -22,15 +22,44 @@ const allRoles = Object.keys(UserRole).map(
 );
 const router = createBrowserRouter([
     {
+        element: <PublicLayout />,
+        children: [
+            {
+                path: '/forgot-password',
+                element: <ForgotPasswordPage />,
+            },
+            {
+                path: '/login',
+                element: <LoginPage />,
+            },
+            {
+                path: '/logout',
+                element: (
+                    <ProtectedRoute allowedRoles={allRoles}>
+                        <LogoutPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/reset-password',
+                element: <ResetPasswordPage />,
+            },
+            {
+                path: '/public/726573706f6e7365/:responseId/70726976617465',
+                element: <PublicAssessmentResponsePage />,
+            },
+        ],
+    },
+    {
         element: <PrivateLayout />,
         children: [
             {
-                path: '/',
+                path: '/assessments/:id/responses',
                 element: (
                     <ProtectedRoute
                         allowedRoles={allRoles}
                     >
-                        <AssessmentsPage />
+                        <AssessmentResponsesPage />
                     </ProtectedRoute>
                 ),
             },
@@ -41,16 +70,6 @@ const router = createBrowserRouter([
                         allowedRoles={allRoles}
                     >
                         <AssessmentPage />
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: '/assessments',
-                element: (
-                    <ProtectedRoute
-                        allowedRoles={allRoles}
-                    >
-                        <AssessmentsPage />
                     </ProtectedRoute>
                 ),
             },
@@ -68,12 +87,12 @@ const router = createBrowserRouter([
                 ),
             },
             {
-                path: '/assessments/:id/responses',
+                path: '/assessments',
                 element: (
                     <ProtectedRoute
                         allowedRoles={allRoles}
                     >
-                        <AssessmentResponsesPage />
+                        <AssessmentsPage />
                     </ProtectedRoute>
                 ),
             },
@@ -109,34 +128,15 @@ const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
-        ],
-    },
-    {
-        element: <PublicLayout />,
-        children: [
             {
-                path: '/login',
-                element: <LoginPage />,
-            },
-            {
-                path: '/public/726573706f6e7365/:responseId/70726976617465',
-                element: <PublicAssessmentResponsePage />,
-            },
-            {
-                path: '/logout',
+                path: '/',
                 element: (
-                    <ProtectedRoute allowedRoles={allRoles}>
-                        <LogoutPage />
+                    <ProtectedRoute
+                        allowedRoles={allRoles}
+                    >
+                        <AssessmentsPage />
                     </ProtectedRoute>
                 ),
-            },
-            {
-                path: '/forgot-password',
-                element: <ForgotPasswordPage />,
-            },
-            {
-                path: '/reset-password',
-                element: <ResetPasswordPage />,
             },
         ],
     },
