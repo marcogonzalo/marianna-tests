@@ -90,6 +90,32 @@ async def create_bulk_responses(
     return AssessmentResponseRead.model_validate(assessment_response)
 
 
+# Public endpoint - no authentication required for pending responses
+@responses_router.get("/public/{response_id}", response_model=AssessmentResponseReadWithQuestions)
+async def get_public_assessment_response(
+    response_id: str,
+    session: Session = Depends(get_session)
+):
+    response_dict = AssessmentResponseService.get_assessment_response(
+        session, response_id)
+
+    # Only allow access to pending responses for public endpoint
+    if response_dict['status'] != ResponseStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only pending responses can be accessed publicly",
+        )
+
+    # Handle nested assessment validation
+    if 'assessment' in response_dict:
+        assessment_dict = response_dict['assessment']
+        response_dict['assessment'] = AssessmentRead.model_validate(
+            assessment_dict)
+
+    # Validate the complete response
+    return AssessmentResponseReadWithQuestions.model_validate(response_dict)
+
+
 @responses_router.get("/{response_id}", response_model=AssessmentResponseReadWithQuestions, dependencies=[Depends(RoleChecker(all_user_roles))])
 async def get_bulk_responses(
     response_id: str,

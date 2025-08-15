@@ -85,6 +85,13 @@ export async function getAssessmentResponse(
     return transformKeys(data, toCamelCase) as AssessmentResponse;
 }
 
+export async function getPublicAssessmentResponse(
+    responseId: string,
+): Promise<AssessmentResponse> {
+    const data = await fetchApi<AssessmentResponse>(`/responses/public/${responseId}`);
+    return transformKeys(data, toCamelCase) as AssessmentResponse;
+}
+
 export async function createAssessmentResponse(
     assessmentId: number,
     data: CreateAssessmentResponse,

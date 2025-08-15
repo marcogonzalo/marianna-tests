@@ -16,12 +16,14 @@ A system for creating and managing assessments with different scoring methods.
 ## Development Setup
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd <project-directory>
 ```
 
 2. Copy the environment files and configure your variables:
+
 ```bash
 # API environment
 cd api
@@ -33,11 +35,13 @@ cp .env.example .env.development
 ```
 
 3. Start the development environment:
+
 ```bash
 docker-compose up
 ```
 
 This will start:
+
 - The client application at http://localhost:5173
 - The API service at http://localhost:8000
 - A PostgreSQL database at localhost:5432
@@ -45,6 +49,7 @@ This will start:
 ### API Documentation
 
 Once the API is running, you can access:
+
 - Interactive API documentation (Swagger UI): http://localhost:8000/docs
 - Alternative API documentation (ReDoc): http://localhost:8000/redoc
 
@@ -68,6 +73,7 @@ docker-compose -f docker-compose.test.yml run api pytest --cov=api api/tests/
 To deploy the application in production:
 
 1. Configure production environment variables:
+
 ```bash
 # API production environment
 cd api
@@ -81,16 +87,19 @@ cp .env.example .env
 ```
 
 2. Build and start the production services:
+
 ```bash
 docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 This will start:
+
 - The client application at http://localhost:5173 (served by nginx)
 - The API service at http://localhost:8000
 - A PostgreSQL database at localhost:5432
 
 3. Create the initial admin user in production (if first deployment):
+
 ```bash
 docker-compose -f docker-compose.prod.yml exec api pipenv run create-admin
 ```
@@ -98,6 +107,7 @@ docker-compose -f docker-compose.prod.yml exec api pipenv run create-admin
 ### Production Health Checks
 
 The production environment includes health checks for all services:
+
 - Client: http://localhost:5173/health
 - API: http://localhost:8000/health
 - Database: Automatically checked by Docker
@@ -127,6 +137,7 @@ The client will be available at http://localhost:5173
 ## Environment Variables
 
 ### API Environment Variables:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `ENVIRONMENT`: Development/production environment
 - `DEBUG`: Enable/disable debug mode
@@ -134,6 +145,7 @@ The client will be available at http://localhost:5173
 - `CORS_ORIGINS`: Allowed CORS origins
 
 ### Client Environment Variables:
+
 - `VITE_API_URL`: API endpoint URL (default: http://api:8000 in Docker)
 - `HOST`: Host to bind the development server (default: 0.0.0.0)
 
@@ -142,20 +154,23 @@ Check `.env.example` files in both api/ and client/ directories for all availabl
 ## Common Issues
 
 1. If you get permission errors with the database volume:
+
 ```bash
 sudo chown -R 1000:1000 postgres_data/
 ```
 
 2. If the client build fails with TypeScript errors in production:
+
 ```bash
 # You can force the build with
 docker-compose -f docker-compose.prod.yml build --build-arg TSC_COMPILE_ON_ERROR=true
 ```
 
 3. If you need to reset the database:
+
 ```bash
 # Stop all containers and remove volumes
 docker-compose down -v
 # Then restart with
 docker-compose up --build
-``` 
+```

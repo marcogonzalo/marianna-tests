@@ -50,7 +50,7 @@ class AssessmentResponseReadWithQuestions(AssessmentResponseReadWithAssessment):
     status: ResponseStatus
     score: Optional[float]
     assessment: AssessmentRead
-    question_responses: List["QuestionResponseRead"] = []
+    question_responses: Optional[List["QuestionResponseRead"]] = []
 
     class Config:
         from_attributes = True

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     getAssessment,
-    getAssessmentResponse,
+    getPublicAssessmentResponse,
     updateAssessmentResponse,
 } from '@/features/assessments/api';
 import {
@@ -32,7 +32,7 @@ export default function AssessmentResponsePage() {
         const loadData = async () => {
             try {
                 if (!responseId) throw new Error('Response IDs is required');
-                const responseData = await getAssessmentResponse(responseId);
+                const responseData = await getPublicAssessmentResponse(responseId);
                 setResponse(responseData);
                 if (responseData.status !== ResponseStatus.PENDING)
                     throw new Error('Asessment not available');
